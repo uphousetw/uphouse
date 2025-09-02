@@ -14,7 +14,10 @@
       "Bash(git init:*)",
       "Bash(git remote add:*)",
       "Bash(git push:*)",
-      "Bash(ssh-keygen:*)"
+      "Bash(ssh-keygen:*)",
+      "Bash(git rm:*)",
+      "Bash(rm:*)",
+      "Bash(mv:*)"
     ],
     "deny": [],
     "ask": []
