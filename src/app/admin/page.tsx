@@ -38,6 +38,8 @@ export default function AdminDashboard() {
   const [loading, setLoading] = useState(true)
   const [showProjectForm, setShowProjectForm] = useState(false)
   const [editingProject, setEditingProject] = useState<Project | null>(null)
+  const [selectedContact, setSelectedContact] = useState<ContactSubmission | null>(null)
+  const [showContactDetail, setShowContactDetail] = useState(false)
 
   useEffect(() => {
     loadData()
@@ -206,6 +208,16 @@ export default function AdminDashboard() {
     }
   }
 
+  const handleViewContactDetail = (contact: ContactSubmission) => {
+    setSelectedContact(contact)
+    setShowContactDetail(true)
+    
+    // Automatically mark as read when viewing
+    if (contact.status === 'new') {
+      updateContactStatus(contact.id, 'read')
+    }
+  }
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -370,9 +382,12 @@ export default function AdminDashboard() {
                   <tbody className="bg-white divide-y divide-gray-200">
                     {contactSubmissions.map((submission) => (
                       <tr key={submission.id} className="hover:bg-gray-50">
-                        <td className="px-6 py-4 whitespace-nowrap">
+                        <td 
+                          className="px-6 py-4 whitespace-nowrap cursor-pointer"
+                          onClick={() => handleViewContactDetail(submission)}
+                        >
                           <div>
-                            <div className="text-sm font-light text-gray-900">
+                            <div className="text-sm font-light text-gray-900 hover:text-blue-600">
                               {submission.name}
                             </div>
                             <div className="text-sm text-gray-500">
@@ -732,6 +747,153 @@ export default function AdminDashboard() {
                   </button>
                 </div>
               </form>
+            </div>
+          </div>
+        )}
+
+        {/* Contact Detail Modal */}
+        {showContactDetail && selectedContact && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-white rounded-sm shadow-lg p-8 max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+              <div className="flex justify-between items-center mb-6">
+                <h2 className="text-2xl font-light text-gray-900">
+                  聯絡訊息詳情
+                </h2>
+                <button
+                  onClick={() => {
+                    setShowContactDetail(false)
+                    setSelectedContact(null)
+                  }}
+                  className="text-gray-400 hover:text-gray-600 transition-colors"
+                >
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+              
+              <div className="space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <label className="block text-sm font-light text-gray-500 uppercase tracking-wider mb-2">
+                      聯絡人姓名
+                    </label>
+                    <p className="text-lg font-light text-gray-900">{selectedContact.name}</p>
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-light text-gray-500 uppercase tracking-wider mb-2">
+                      狀態
+                    </label>
+                    <span className={`inline-flex px-3 py-1 text-sm font-light rounded-full ${getStatusColor(selectedContact.status)}`}>
+                      {getStatusText(selectedContact.status)}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <label className="block text-sm font-light text-gray-500 uppercase tracking-wider mb-2">
+                      電子郵件
+                    </label>
+                    <p className="text-gray-900 font-light">{selectedContact.email}</p>
+                  </div>
+                  
+                  {selectedContact.phone && (
+                    <div>
+                      <label className="block text-sm font-light text-gray-500 uppercase tracking-wider mb-2">
+                        聯絡電話
+                      </label>
+                      <p className="text-gray-900 font-light">{selectedContact.phone}</p>
+                    </div>
+                  )}
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {selectedContact.projectType && (
+                    <div>
+                      <label className="block text-sm font-light text-gray-500 uppercase tracking-wider mb-2">
+                        項目類型
+                      </label>
+                      <p className="text-gray-900 font-light">{selectedContact.projectType}</p>
+                    </div>
+                  )}
+                  
+                  {selectedContact.budget && (
+                    <div>
+                      <label className="block text-sm font-light text-gray-500 uppercase tracking-wider mb-2">
+                        預算範圍
+                      </label>
+                      <p className="text-gray-900 font-light">{selectedContact.budget}</p>
+                    </div>
+                  )}
+                </div>
+
+                <div>
+                  <label className="block text-sm font-light text-gray-500 uppercase tracking-wider mb-2">
+                    提交時間
+                  </label>
+                  <p className="text-gray-900 font-light">{formatDate(selectedContact.submittedAt)}</p>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-light text-gray-500 uppercase tracking-wider mb-2">
+                    訊息內容
+                  </label>
+                  <div className="bg-gray-50 p-4 rounded-sm">
+                    <p className="text-gray-900 font-light whitespace-pre-wrap leading-relaxed">
+                      {selectedContact.message}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="border-t pt-6">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <label htmlFor="contactStatus" className="block text-sm font-light text-gray-500 uppercase tracking-wider mb-2">
+                        更新狀態
+                      </label>
+                      <select
+                        id="contactStatus"
+                        value={selectedContact.status}
+                        onChange={(e) => {
+                          const newStatus = e.target.value as 'new' | 'read' | 'replied'
+                          updateContactStatus(selectedContact.id, newStatus)
+                          setSelectedContact(prev => prev ? { ...prev, status: newStatus } : null)
+                        }}
+                        className="px-3 py-2 border border-gray-300 rounded-sm focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent font-light"
+                      >
+                        <option value="new">新訊息</option>
+                        <option value="read">已讀</option>
+                        <option value="replied">已回覆</option>
+                      </select>
+                    </div>
+                    
+                    <div className="flex space-x-3">
+                      <button
+                        onClick={() => {
+                          if (selectedContact.email) {
+                            window.open(`mailto:${selectedContact.email}?subject=Re: ${selectedContact.projectType || '聯絡諮詢'}`, '_blank')
+                          }
+                        }}
+                        className="px-4 py-2 bg-blue-600 text-white font-light text-sm tracking-wide hover:bg-blue-700 transition-colors duration-200 rounded-sm"
+                      >
+                        回覆郵件
+                      </button>
+                      <button
+                        onClick={() => {
+                          handleDeleteContact(selectedContact.id)
+                          setShowContactDetail(false)
+                          setSelectedContact(null)
+                        }}
+                        className="px-4 py-2 bg-red-600 text-white font-light text-sm tracking-wide hover:bg-red-700 transition-colors duration-200 rounded-sm"
+                      >
+                        刪除訊息
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         )}
