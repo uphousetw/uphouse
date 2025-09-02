@@ -273,7 +273,10 @@ export default function AdminDashboard() {
             </h1>
             
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              <div className="bg-white p-6 rounded-sm shadow-sm">
+              <button 
+                onClick={() => setActiveTab('contacts')}
+                className="bg-white p-6 rounded-sm shadow-sm hover:shadow-md hover:bg-gray-50 transition-all duration-200 text-left w-full"
+              >
                 <div className="flex items-center">
                   <div className="flex-shrink-0">
                     <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
@@ -287,9 +290,12 @@ export default function AdminDashboard() {
                     <p className="text-sm font-light text-gray-600">聯絡訊息</p>
                   </div>
                 </div>
-              </div>
+              </button>
 
-              <div className="bg-white p-6 rounded-sm shadow-sm">
+              <button 
+                onClick={() => setActiveTab('projects')}
+                className="bg-white p-6 rounded-sm shadow-sm hover:shadow-md hover:bg-gray-50 transition-all duration-200 text-left w-full"
+              >
                 <div className="flex items-center">
                   <div className="flex-shrink-0">
                     <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
@@ -303,9 +309,12 @@ export default function AdminDashboard() {
                     <p className="text-sm font-light text-gray-600">作品項目</p>
                   </div>
                 </div>
-              </div>
+              </button>
 
-              <div className="bg-white p-6 rounded-sm shadow-sm">
+              <button 
+                onClick={() => setActiveTab('contacts')}
+                className="bg-white p-6 rounded-sm shadow-sm hover:shadow-md hover:bg-gray-50 transition-all duration-200 text-left w-full"
+              >
                 <div className="flex items-center">
                   <div className="flex-shrink-0">
                     <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center">
@@ -321,7 +330,7 @@ export default function AdminDashboard() {
                     <p className="text-sm font-light text-gray-600">待處理訊息</p>
                   </div>
                 </div>
-              </div>
+              </button>
             </div>
           </div>
         )}
