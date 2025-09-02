@@ -17,7 +17,9 @@
       "Bash(ssh-keygen:*)",
       "Bash(git rm:*)",
       "Bash(rm:*)",
-      "Bash(mv:*)"
+      "Bash(mv:*)",
+      "Bash(git fetch:*)",
+      "Bash(git ls-tree:*)"
     ],
     "deny": [],
     "ask": []
