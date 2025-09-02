@@ -19,7 +19,8 @@
       "Bash(rm:*)",
       "Bash(mv:*)",
       "Bash(git fetch:*)",
-      "Bash(git ls-tree:*)"
+      "Bash(git ls-tree:*)",
+      "Bash(git branch:*)"
     ],
     "deny": [],
     "ask": []
