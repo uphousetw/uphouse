@@ -1,5 +1,46 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { contactSubmissions, type ContactSubmission } from '@/lib/data/contacts'
+import { writeFile, readFile } from 'fs/promises'
+import path from 'path'
+import { sendContactNotification, sendContactConfirmation } from '@/lib/email'
+
+export interface ContactSubmission {
+  id: string
+  name: string
+  email: string
+  phone?: string
+  projectType?: string
+  budget?: string
+  message: string
+  submittedAt: string
+  status: 'new' | 'read' | 'replied'
+}
+
+const CONTACTS_FILE = path.join(process.cwd(), 'src/lib/data/contacts.json')
+
+// Initialize contacts file if it doesn't exist
+async function initContactsFile() {
+  try {
+    await readFile(CONTACTS_FILE)
+  } catch (error) {
+    // File doesn't exist, create it
+    const initialData = { submissions: [] }
+    await writeFile(CONTACTS_FILE, JSON.stringify(initialData, null, 2))
+  }
+}
+
+// Read contacts from file
+async function readContacts() {
+  await initContactsFile()
+  const data = await readFile(CONTACTS_FILE, 'utf-8')
+  const contactData = JSON.parse(data)
+  return contactData.submissions || []
+}
+
+// Write contacts to file
+async function writeContacts(submissions: ContactSubmission[]) {
+  const contactData = { submissions }
+  await writeFile(CONTACTS_FILE, JSON.stringify(contactData, null, 2))
+}
 
 // POST /api/contact - Submit contact form
 export async function POST(request: NextRequest) {
@@ -36,13 +77,22 @@ export async function POST(request: NextRequest) {
     }
 
     // Store submission
-    contactSubmissions.push(submission)
+    const currentSubmissions = await readContacts()
+    currentSubmissions.push(submission)
+    await writeContacts(currentSubmissions)
 
-    // In production, you would:
-    // 1. Save to database
-    // 2. Send notification email to admin
-    // 3. Send confirmation email to user
-    // 4. Integrate with CRM or project management system
+    // Send email notifications (don't block response on email failures)
+    Promise.all([
+      sendContactNotification(submission),
+      sendContactConfirmation(submission)
+    ]).then(([adminResult, confirmResult]) => {
+      console.log('Email notifications sent:', {
+        admin: adminResult.success ? 'Success' : `Failed: ${adminResult.error}`,
+        confirmation: confirmResult.success ? 'Success' : `Failed: ${confirmResult.error}`
+      })
+    }).catch(error => {
+      console.error('Email notification error:', error)
+    })
 
     console.log('New contact submission received:', {
       id: submission.id,
@@ -69,38 +119,47 @@ export async function POST(request: NextRequest) {
 
 // GET /api/contact - Get all contact submissions (Admin only)
 export async function GET(request: NextRequest) {
-  const { searchParams } = new URL(request.url)
-  const page = parseInt(searchParams.get('page') || '1')
-  const limit = parseInt(searchParams.get('limit') || '20')
-  const status = searchParams.get('status') as 'new' | 'read' | 'replied' | null
+  try {
+    const { searchParams } = new URL(request.url)
+    const page = parseInt(searchParams.get('page') || '1')
+    const limit = parseInt(searchParams.get('limit') || '20')
+    const status = searchParams.get('status') as 'new' | 'read' | 'replied' | null
 
-  let filteredSubmissions = contactSubmissions
+    const contactSubmissions = await readContacts()
+    let filteredSubmissions = contactSubmissions
 
-  if (status) {
-    filteredSubmissions = contactSubmissions.filter(submission => submission.status === status)
-  }
-
-  // Sort by newest first
-  filteredSubmissions.sort((a, b) => new Date(b.submittedAt).getTime() - new Date(a.submittedAt).getTime())
-
-  const startIndex = (page - 1) * limit
-  const endIndex = startIndex + limit
-  const paginatedSubmissions = filteredSubmissions.slice(startIndex, endIndex)
-
-  return NextResponse.json({
-    submissions: paginatedSubmissions,
-    pagination: {
-      currentPage: page,
-      totalPages: Math.ceil(filteredSubmissions.length / limit),
-      totalSubmissions: filteredSubmissions.length,
-      hasNext: endIndex < filteredSubmissions.length,
-      hasPrev: page > 1
-    },
-    stats: {
-      total: contactSubmissions.length,
-      new: contactSubmissions.filter(s => s.status === 'new').length,
-      read: contactSubmissions.filter(s => s.status === 'read').length,
-      replied: contactSubmissions.filter(s => s.status === 'replied').length
+    if (status) {
+      filteredSubmissions = contactSubmissions.filter(submission => submission.status === status)
     }
-  })
+
+    // Sort by newest first
+    filteredSubmissions.sort((a, b) => new Date(b.submittedAt).getTime() - new Date(a.submittedAt).getTime())
+
+    const startIndex = (page - 1) * limit
+    const endIndex = startIndex + limit
+    const paginatedSubmissions = filteredSubmissions.slice(startIndex, endIndex)
+
+    return NextResponse.json({
+      submissions: paginatedSubmissions,
+      pagination: {
+        currentPage: page,
+        totalPages: Math.ceil(filteredSubmissions.length / limit),
+        totalSubmissions: filteredSubmissions.length,
+        hasNext: endIndex < filteredSubmissions.length,
+        hasPrev: page > 1
+      },
+      stats: {
+        total: contactSubmissions.length,
+        new: contactSubmissions.filter(s => s.status === 'new').length,
+        read: contactSubmissions.filter(s => s.status === 'read').length,
+        replied: contactSubmissions.filter(s => s.status === 'replied').length
+      }
+    })
+  } catch (error) {
+    console.error('Failed to load contacts:', error)
+    return NextResponse.json(
+      { error: 'Failed to load contacts' },
+      { status: 500 }
+    )
+  }
 }

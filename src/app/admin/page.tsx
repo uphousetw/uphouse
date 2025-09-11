@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 
 interface ContactSubmission {
   id: string
@@ -32,35 +33,87 @@ interface Project {
 }
 
 export default function AdminDashboard() {
+  const router = useRouter()
   const [activeTab, setActiveTab] = useState('overview')
   const [contactSubmissions, setContactSubmissions] = useState<ContactSubmission[]>([])
   const [projects, setProjects] = useState<Project[]>([])
+  const [heroImages, setHeroImages] = useState<string[]>([])
   const [loading, setLoading] = useState(true)
+  const [authLoading, setAuthLoading] = useState(true)
+  const [isAuthenticated, setIsAuthenticated] = useState(false)
   const [showProjectForm, setShowProjectForm] = useState(false)
   const [editingProject, setEditingProject] = useState<Project | null>(null)
   const [selectedContact, setSelectedContact] = useState<ContactSubmission | null>(null)
   const [showContactDetail, setShowContactDetail] = useState(false)
+  const [showReplyModal, setShowReplyModal] = useState(false)
+  const [replyForm, setReplyForm] = useState({ subject: '', message: '' })
 
   useEffect(() => {
-    loadData()
+    checkAuthentication()
   }, [])
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      loadData()
+    }
+  }, [isAuthenticated])
+
+  const checkAuthentication = async () => {
+    try {
+      const response = await fetch('/api/admin/status')
+      const data = await response.json()
+      
+      if (data.authenticated) {
+        setIsAuthenticated(true)
+      } else {
+        router.push('/admin/login')
+      }
+    } catch (error) {
+      console.error('Auth check failed:', error)
+      router.push('/admin/login')
+    } finally {
+      setAuthLoading(false)
+    }
+  }
 
   const loadData = async () => {
     try {
       setLoading(true)
       
       // Load contact submissions
+      console.log('Loading contact submissions...')
       const contactResponse = await fetch('/api/contact')
+      console.log('Contact response status:', contactResponse.status)
       if (contactResponse.ok) {
         const contactData = await contactResponse.json()
+        console.log('Contact data received:', contactData)
         setContactSubmissions(contactData.submissions || [])
+      } else {
+        console.error('Failed to load contacts:', contactResponse.statusText)
       }
 
       // Load projects
+      console.log('Loading projects...')
       const projectsResponse = await fetch('/api/projects')
+      console.log('Projects response status:', projectsResponse.status)
       if (projectsResponse.ok) {
         const projectsData = await projectsResponse.json()
+        console.log('Projects data received:', projectsData)
         setProjects(projectsData.projects || [])
+      } else {
+        console.error('Failed to load projects:', projectsResponse.statusText)
+      }
+
+      // Load hero images
+      console.log('Loading hero images...')
+      const heroResponse = await fetch('/api/hero-images')
+      console.log('Hero images response status:', heroResponse.status)
+      if (heroResponse.ok) {
+        const heroData = await heroResponse.json()
+        console.log('Hero images data received:', heroData)
+        setHeroImages(heroData.images || [])
+      } else {
+        console.error('Failed to load hero images:', heroResponse.statusText)
       }
     } catch (error) {
       console.error('Failed to load data:', error)
@@ -140,8 +193,10 @@ export default function AdminDashboard() {
   }
 
   const handleEditProject = (project: Project) => {
+    console.log('Edit button clicked for project:', project)
     setEditingProject(project)
     setShowProjectForm(true)
+    console.log('showProjectForm set to true, editingProject set to:', project)
   }
 
   const handleDeleteProject = async (projectId: number) => {
@@ -164,10 +219,14 @@ export default function AdminDashboard() {
     }
   }
 
-  const handleSaveProject = async (projectData: any) => {
+  const handleSaveProject = async (projectData: Record<string, unknown>) => {
     try {
+      console.log('Saving project data:', projectData)
+      console.log('editingProject:', editingProject)
+      
       if (editingProject) {
         // Update existing project
+        console.log('Updating project with ID:', editingProject.id)
         const response = await fetch(`/api/projects/${editingProject.id}`, {
           method: 'PUT',
           headers: {
@@ -176,15 +235,24 @@ export default function AdminDashboard() {
           body: JSON.stringify(projectData),
         })
 
+        console.log('Update response status:', response.status)
         if (response.ok) {
           const updatedProject = await response.json()
+          console.log('Updated project:', updatedProject)
           setProjects(prev => 
             prev.map(p => p.id === editingProject.id ? updatedProject : p)
           )
           alert('作品更新成功')
+        } else {
+          const errorText = await response.text()
+          console.error('Update failed with status:', response.status)
+          console.error('Update failed with statusText:', response.statusText)
+          console.error('Update error response:', errorText)
+          alert(`更新失敗: ${response.status} - ${errorText}`)
         }
       } else {
         // Create new project
+        console.log('Creating new project')
         const response = await fetch('/api/projects', {
           method: 'POST',
           headers: {
@@ -193,10 +261,15 @@ export default function AdminDashboard() {
           body: JSON.stringify(projectData),
         })
 
+        console.log('Create response status:', response.status)
         if (response.ok) {
           const newProject = await response.json()
+          console.log('New project:', newProject)
           setProjects(prev => [...prev, newProject])
           alert('作品新增成功')
+        } else {
+          console.error('Create failed:', response.statusText)
+          alert('新增失敗')
         }
       }
       
@@ -218,6 +291,68 @@ export default function AdminDashboard() {
     }
   }
 
+  const handleSendReply = async () => {
+    if (!selectedContact || !replyForm.subject.trim() || !replyForm.message.trim()) {
+      alert('請填寫主旨和訊息內容')
+      return
+    }
+
+    try {
+      const response = await fetch('/api/send-reply', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          to: selectedContact.email,
+          subject: replyForm.subject,
+          message: replyForm.message,
+          contactId: selectedContact.id
+        }),
+      })
+
+      if (response.ok) {
+        // Update contact status to replied
+        await updateContactStatus(selectedContact.id, 'replied')
+        setSelectedContact(prev => prev ? { ...prev, status: 'replied' } : null)
+        
+        alert('回覆郵件發送成功')
+        setShowReplyModal(false)
+        setReplyForm({ subject: '', message: '' })
+      } else {
+        throw new Error('Failed to send reply')
+      }
+    } catch (error) {
+      console.error('Failed to send reply:', error)
+      alert('發送失敗，請檢查郵件設定')
+    }
+  }
+
+  const handleStartReply = () => {
+    if (selectedContact) {
+      setReplyForm({
+        subject: `Re: ${selectedContact.projectType || '聯絡諮詢'}`,
+        message: `親愛的 ${selectedContact.name}，\n\n感謝您的聯絡。\n\n`
+      })
+      setShowReplyModal(true)
+    }
+  }
+
+  if (authLoading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900 mx-auto mb-4"></div>
+          <p className="text-gray-600 font-light">驗證中...</p>
+        </div>
+      </div>
+    )
+  }
+
+  if (!isAuthenticated) {
+    return null // Will be redirected to login
+  }
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -236,6 +371,7 @@ export default function AdminDashboard() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center">
+              <img src="/images/icons/icon_uphouse.jpg" alt="向上建設" className="w-8 h-8 rounded-lg object-cover mr-3 shadow-lg" />
               <Link href="/" className="text-xl font-light text-gray-900 tracking-wide">
                 向上建設
               </Link>
@@ -243,12 +379,33 @@ export default function AdminDashboard() {
                 管理後台
               </span>
             </div>
-            <Link
-              href="/"
-              className="text-gray-600 hover:text-gray-900 font-light text-sm tracking-wide transition-colors duration-200"
-            >
-              回到網站
-            </Link>
+            <div className="flex items-center space-x-4">
+              <Link
+                href="/"
+                className="text-gray-600 hover:text-gray-900 font-light text-sm tracking-wide transition-colors duration-200"
+              >
+                回到網站
+              </Link>
+              <button
+                onClick={async () => {
+                  if (confirm('確定要登出嗎？')) {
+                    try {
+                      const response = await fetch('/api/admin/logout', {
+                        method: 'POST'
+                      })
+                      if (response.ok) {
+                        window.location.href = '/admin/login'
+                      }
+                    } catch (error) {
+                      console.error('Logout failed:', error)
+                    }
+                  }
+                }}
+                className="text-gray-600 hover:text-gray-900 font-light text-sm tracking-wide transition-colors duration-200"
+              >
+                登出
+              </button>
+            </div>
           </div>
         </div>
       </header>
@@ -259,6 +416,7 @@ export default function AdminDashboard() {
           <nav className="flex space-x-8">
             {[
               { id: 'overview', name: '總覽' },
+              { id: 'hero', name: '首頁圖片' },
               { id: 'contacts', name: '聯絡訊息' },
               { id: 'projects', name: '作品管理' },
             ].map((tab) => (
@@ -310,11 +468,7 @@ export default function AdminDashboard() {
               >
                 <div className="flex items-center">
                   <div className="flex-shrink-0">
-                    <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
-                      <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-                      </svg>
-                    </div>
+                    <img src="/images/icons/icon_uphouse.jpg" alt="作品項目" className="w-12 h-12 rounded-xl object-cover shadow-lg" />
                   </div>
                   <div className="ml-4">
                     <p className="text-2xl font-light text-gray-900">{projects.length}</p>
@@ -343,6 +497,149 @@ export default function AdminDashboard() {
                   </div>
                 </div>
               </button>
+            </div>
+          </div>
+        )}
+
+        {/* Hero Images Tab */}
+        {activeTab === 'hero' && (
+          <div className="space-y-8">
+            <div className="flex justify-between items-center">
+              <h1 className="text-3xl font-light text-gray-900 tracking-tight">
+                首頁圖片管理
+              </h1>
+              <div>
+                <input
+                  type="file"
+                  accept="image/*"
+                  multiple
+                  id="hero-upload"
+                  className="hidden"
+                  onChange={async (e) => {
+                    const files = Array.from(e.target.files || [])
+                    if (files.length === 0) return
+
+                    try {
+                      const uploadPromises = files.map(async (file) => {
+                        const formData = new FormData()
+                        formData.append('file', file)
+                        formData.append('folder', 'hero')
+                        
+                        const response = await fetch('/api/upload', {
+                          method: 'POST',
+                          body: formData
+                        })
+                        
+                        if (response.ok) {
+                          const result = await response.json()
+                          return result.url
+                        }
+                        throw new Error('Upload failed')
+                      })
+
+                      const uploadedUrls = await Promise.all(uploadPromises)
+                      const updatedImages = [...heroImages, ...uploadedUrls]
+                      
+                      // Save to API
+                      const saveResponse = await fetch('/api/hero-images', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ images: updatedImages })
+                      })
+
+                      if (saveResponse.ok) {
+                        setHeroImages(updatedImages)
+                        alert(`成功上傳 ${uploadedUrls.length} 張圖片`)
+                      }
+                    } catch (error) {
+                      console.error('Upload error:', error)
+                      alert('上傳失敗')
+                    }
+                    
+                    // Reset input
+                    e.target.value = ''
+                  }}
+                />
+                <label
+                  htmlFor="hero-upload"
+                  className="px-6 py-3 bg-gray-900 text-white font-light text-sm tracking-wide hover:bg-gray-800 transition-colors duration-200 cursor-pointer inline-block"
+                >
+                  上傳圖片
+                </label>
+              </div>
+            </div>
+            
+            <div className="bg-white shadow-sm rounded-sm p-6">
+              <p className="text-gray-600 font-light mb-6">
+                管理首頁輪播圖片。可以上傳多張圖片，支援 JPG、PNG、WebP 格式。
+              </p>
+              
+              {heroImages.length > 0 ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {heroImages.map((image, index) => (
+                    <div key={index} className="relative group">
+                      <div className="aspect-video bg-gray-100 rounded-lg overflow-hidden">
+                        <img
+                          src={image}
+                          alt={`Hero image ${index + 1}`}
+                          className="w-full h-full object-cover"
+                          onError={(e) => {
+                            const target = e.target as HTMLImageElement
+                            target.src = '/images/placeholder.jpg'
+                          }}
+                        />
+                      </div>
+                      
+                      <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <button
+                          onClick={async () => {
+                            if (!confirm('確定要刪除這張圖片嗎？')) return
+                            
+                            const updatedImages = heroImages.filter((_, i) => i !== index)
+                            
+                            try {
+                              const response = await fetch('/api/hero-images', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ images: updatedImages })
+                              })
+
+                              if (response.ok) {
+                                setHeroImages(updatedImages)
+                                alert('圖片刪除成功')
+                              } else {
+                                throw new Error('Delete failed')
+                              }
+                            } catch (error) {
+                              console.error('Delete error:', error)
+                              alert('刪除失敗')
+                            }
+                          }}
+                          className="px-3 py-2 bg-red-600 text-white font-light text-xs tracking-wide hover:bg-red-700 transition-colors duration-200 rounded-sm shadow-lg"
+                        >
+                          刪除
+                        </button>
+                      </div>
+                      
+                      <div className="mt-2">
+                        <p className="text-sm text-gray-600 font-light truncate">
+                          圖片 {index + 1}
+                        </p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-12">
+                  <div className="w-16 h-16 bg-gray-200 rounded-lg flex items-center justify-center mx-auto mb-4">
+                    <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                    </svg>
+                  </div>
+                  <p className="text-gray-500 font-light mb-4">暫無首頁圖片</p>
+                  <p className="text-sm text-gray-400 font-light">點擊上方「上傳圖片」開始新增圖片</p>
+                </div>
+              )}
             </div>
           </div>
         )}
@@ -383,7 +680,7 @@ export default function AdminDashboard() {
                     {contactSubmissions.map((submission) => (
                       <tr key={submission.id} className="hover:bg-gray-50">
                         <td 
-                          className="px-6 py-4 whitespace-nowrap cursor-pointer"
+                          className="px-6 py-4 whitespace-nowrap cursor-pointer hover:bg-blue-50"
                           onClick={() => handleViewContactDetail(submission)}
                         >
                           <div>
@@ -419,7 +716,7 @@ export default function AdminDashboard() {
                             <select
                               value={submission.status}
                               onChange={(e) => updateContactStatus(submission.id, e.target.value as 'new' | 'read' | 'replied')}
-                              className="text-sm border-gray-300 rounded-md font-light"
+                              className="text-sm border-gray-300 rounded-md font-light text-gray-900 bg-white"
                             >
                               <option value="new">新訊息</option>
                               <option value="read">已讀</option>
@@ -466,8 +763,32 @@ export default function AdminDashboard() {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
               {projects.map((project) => (
                 <div key={project.id} className="bg-white rounded-sm shadow-sm overflow-hidden">
-                  <div className="h-48 bg-gray-200 flex items-center justify-center">
-                    <span className="text-gray-400 font-light">專案圖片</span>
+                  <div className="h-48 bg-gray-200 relative overflow-hidden">
+                    {project.image && project.image !== '/api/placeholder/800/600' ? (
+                      <img 
+                        src={project.image} 
+                        alt={project.title}
+                        className="w-full h-full object-cover"
+                        onError={(e) => {
+                          const target = e.target as HTMLImageElement;
+                          target.style.display = 'none';
+                          const placeholder = target.parentElement?.querySelector('.placeholder-text');
+                          if (placeholder) {
+                            placeholder.classList.remove('hidden');
+                          }
+                        }}
+                      />
+                    ) : null}
+                    <div className={`absolute inset-0 flex items-center justify-center placeholder-text ${project.image && project.image !== '/api/placeholder/800/600' ? 'hidden' : ''}`}>
+                      <div className="text-center">
+                        <div className="w-16 h-16 bg-gray-300 rounded-lg flex items-center justify-center mx-auto mb-2">
+                          <svg className="w-8 h-8 text-gray-500" fill="currentColor" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clipRule="evenodd" />
+                          </svg>
+                        </div>
+                        <span className="text-gray-500 font-light text-sm">專案圖片</span>
+                      </div>
+                    </div>
                   </div>
                   <div className="p-6">
                     <div className="flex items-center justify-between mb-2">
@@ -513,28 +834,71 @@ export default function AdminDashboard() {
 
         {/* Project Form Modal */}
         {showProjectForm && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-            <div className="bg-white rounded-sm shadow-lg p-8 max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
-              <h2 className="text-2xl font-light text-gray-900 mb-6">
-                {editingProject ? '編輯作品' : '新增作品'}
-              </h2>
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-sm shadow-lg p-6 max-w-4xl w-full max-h-[95vh] overflow-y-auto">
+              <div className="flex justify-between items-center mb-6">
+                <h2 className="text-2xl font-light text-gray-900">
+                  {editingProject ? '編輯作品' : '新增作品'}
+                </h2>
+                <button
+                  onClick={() => {
+                    setShowProjectForm(false)
+                    setEditingProject(null)
+                  }}
+                  className="text-gray-400 hover:text-gray-600 transition-colors"
+                >
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
               
               <form onSubmit={async (e) => {
                 e.preventDefault()
+                console.log('Form submitted')
                 const formData = new FormData(e.target as HTMLFormElement)
+                
+                console.log('FormData entries:')
+                for (const [key, value] of formData.entries()) {
+                  console.log(`${key}:`, value)
+                }
                 
                 // Handle file uploads
                 const imageFile = formData.get('image') as File
                 const galleryFiles = formData.getAll('gallery') as File[]
                 
+                console.log('Image file:', imageFile)
+                console.log('Gallery files:', galleryFiles)
+                
                 let imageUrl = editingProject?.image || '/api/placeholder/800/600'
                 let galleryUrls = editingProject?.gallery || []
                 
-                // For now, we'll use placeholder logic since we don't have actual file upload server
-                // In production, you'd upload to a file storage service (AWS S3, Cloudinary, etc.)
+                // Handle actual file upload
                 if (imageFile && imageFile.size > 0) {
-                  // Simulate file upload - in production replace with actual upload
-                  imageUrl = `/uploads/projects/${Date.now()}_${imageFile.name}`
+                  try {
+                    // Create FormData for file upload
+                    const uploadFormData = new FormData()
+                    uploadFormData.append('file', imageFile)
+                    uploadFormData.append('folder', 'projects')
+                    
+                    // Upload file to server
+                    const uploadResponse = await fetch('/api/upload', {
+                      method: 'POST',
+                      body: uploadFormData
+                    })
+                    
+                    if (uploadResponse.ok) {
+                      const uploadResult = await uploadResponse.json()
+                      imageUrl = uploadResult.url
+                      console.log('Image uploaded successfully:', imageUrl)
+                    } else {
+                      console.error('Image upload failed')
+                      // Keep existing image if upload fails
+                    }
+                  } catch (error) {
+                    console.error('Error uploading image:', error)
+                    // Keep existing image if upload fails
+                  }
                 }
                 
                 if (galleryFiles.length > 0) {
@@ -545,17 +909,20 @@ export default function AdminDashboard() {
                 }
                 
                 const projectData = {
-                  title: formData.get('title') as string,
-                  description: formData.get('description') as string,
-                  fullDescription: formData.get('fullDescription') as string,
-                  completionDate: formData.get('completionDate') as string,
-                  category: formData.get('category') as string,
-                  location: formData.get('location') as string,
-                  area: formData.get('area') as string,
-                  features: (formData.get('features') as string).split(',').map(f => f.trim()).filter(f => f),
+                  title: formData.get('title') as string || '',
+                  description: formData.get('description') as string || '',
+                  fullDescription: formData.get('fullDescription') as string || '',
+                  completionDate: formData.get('completionDate') as string || '',
+                  category: formData.get('category') as string || '',
+                  location: formData.get('location') as string || '',
+                  area: formData.get('area') as string || '',
+                  features: formData.get('features') ? 
+                    (formData.get('features') as string).split(',').map(f => f.trim()).filter(f => f) : 
+                    [],
                   image: imageUrl,
                   gallery: galleryUrls
                 }
+                console.log('Processed project data:', projectData)
                 handleSaveProject(projectData)
               }}>
                 <div className="space-y-6">
@@ -569,7 +936,7 @@ export default function AdminDashboard() {
                       name="title"
                       required
                       defaultValue={editingProject?.title || ''}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-sm focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent font-light"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-sm focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent font-light text-gray-900 bg-white"
                     />
                   </div>
 
@@ -583,7 +950,7 @@ export default function AdminDashboard() {
                       required
                       rows={3}
                       defaultValue={editingProject?.description || ''}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-sm focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent font-light"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-sm focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent font-light text-gray-900 bg-white"
                     />
                   </div>
 
@@ -596,7 +963,7 @@ export default function AdminDashboard() {
                       name="fullDescription"
                       rows={5}
                       defaultValue={editingProject?.fullDescription || ''}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-sm focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent font-light"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-sm focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent font-light text-gray-900 bg-white"
                     />
                   </div>
 
@@ -612,7 +979,7 @@ export default function AdminDashboard() {
                         required
                         placeholder="2024年6月"
                         defaultValue={editingProject?.completionDate || ''}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-sm focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent font-light"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-sm focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent font-light text-gray-900 bg-white"
                       />
                     </div>
 
@@ -625,7 +992,7 @@ export default function AdminDashboard() {
                         name="category"
                         required
                         defaultValue={editingProject?.category || ''}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-sm focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent font-light"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-sm focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent font-light text-gray-900 bg-white"
                       >
                         <option value="">請選擇類別</option>
                         <option value="住宅">住宅</option>
@@ -647,7 +1014,7 @@ export default function AdminDashboard() {
                         name="location"
                         placeholder="台北市大安區"
                         defaultValue={editingProject?.location || ''}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-sm focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent font-light"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-sm focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent font-light text-gray-900 bg-white"
                       />
                     </div>
 
@@ -661,7 +1028,7 @@ export default function AdminDashboard() {
                         name="area"
                         placeholder="280坪"
                         defaultValue={editingProject?.area || ''}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-sm focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent font-light"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-sm focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent font-light text-gray-900 bg-white"
                       />
                     </div>
                   </div>
@@ -676,7 +1043,7 @@ export default function AdminDashboard() {
                       name="features"
                       placeholder="大面積玻璃窗, 開放式格局, 進口石材"
                       defaultValue={editingProject?.features?.join(', ') || ''}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-sm focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent font-light"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-sm focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent font-light text-gray-900 bg-white"
                     />
                   </div>
 
@@ -690,7 +1057,7 @@ export default function AdminDashboard() {
                         id="image"
                         name="image"
                         accept="image/*"
-                        className="w-full px-3 py-2 border border-gray-300 rounded-sm focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent font-light"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-sm focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent font-light text-gray-900 bg-white"
                       />
                       {editingProject?.image && (
                         <div className="text-sm text-gray-600 font-light">
@@ -714,7 +1081,7 @@ export default function AdminDashboard() {
                         name="gallery"
                         accept="image/*"
                         multiple
-                        className="w-full px-3 py-2 border border-gray-300 rounded-sm focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent font-light"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-sm focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent font-light text-gray-900 bg-white"
                       />
                       {editingProject?.gallery && editingProject.gallery.length > 0 && (
                         <div className="text-sm text-gray-600 font-light">
@@ -753,8 +1120,8 @@ export default function AdminDashboard() {
 
         {/* Contact Detail Modal */}
         {showContactDetail && selectedContact && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-            <div className="bg-white rounded-sm shadow-lg p-8 max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-sm shadow-lg p-6 max-w-4xl w-full max-h-[95vh] overflow-y-auto">
               <div className="flex justify-between items-center mb-6">
                 <h2 className="text-2xl font-light text-gray-900">
                   聯絡訊息詳情
@@ -861,7 +1228,7 @@ export default function AdminDashboard() {
                           updateContactStatus(selectedContact.id, newStatus)
                           setSelectedContact(prev => prev ? { ...prev, status: newStatus } : null)
                         }}
-                        className="px-3 py-2 border border-gray-300 rounded-sm focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent font-light"
+                        className="px-3 py-2 border border-gray-300 rounded-sm focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent font-light text-gray-900 bg-white"
                       >
                         <option value="new">新訊息</option>
                         <option value="read">已讀</option>
@@ -871,11 +1238,7 @@ export default function AdminDashboard() {
                     
                     <div className="flex space-x-3">
                       <button
-                        onClick={() => {
-                          if (selectedContact.email) {
-                            window.open(`mailto:${selectedContact.email}?subject=Re: ${selectedContact.projectType || '聯絡諮詢'}`, '_blank')
-                          }
-                        }}
+                        onClick={handleStartReply}
                         className="px-4 py-2 bg-blue-600 text-white font-light text-sm tracking-wide hover:bg-blue-700 transition-colors duration-200 rounded-sm"
                       >
                         回覆郵件
@@ -893,6 +1256,113 @@ export default function AdminDashboard() {
                     </div>
                   </div>
                 </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Reply Modal */}
+        {showReplyModal && selectedContact && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-sm shadow-lg p-6 max-w-4xl w-full max-h-[95vh] overflow-y-auto">
+              <div className="flex justify-between items-center mb-6">
+                <h2 className="text-2xl font-light text-gray-900">
+                  回覆 {selectedContact.name}
+                </h2>
+                <button
+                  onClick={() => {
+                    setShowReplyModal(false)
+                    setReplyForm({ subject: '', message: '' })
+                  }}
+                  className="text-gray-400 hover:text-gray-600 transition-colors"
+                >
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+              
+              <div className="space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <label className="block text-sm font-light text-gray-700 mb-2">
+                      收件人
+                    </label>
+                    <input
+                      type="email"
+                      value={selectedContact.email}
+                      disabled
+                      className="w-full px-3 py-2 border border-gray-300 rounded-sm bg-gray-50 text-gray-600 font-light"
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-light text-gray-700 mb-2">
+                      主旨
+                    </label>
+                    <input
+                      type="text"
+                      value={replyForm.subject}
+                      onChange={(e) => setReplyForm(prev => ({ ...prev, subject: e.target.value }))}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-sm focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent font-light text-gray-900"
+                      placeholder="請輸入郵件主旨"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-light text-gray-700 mb-2">
+                    回覆內容
+                  </label>
+                  <textarea
+                    value={replyForm.message}
+                    onChange={(e) => setReplyForm(prev => ({ ...prev, message: e.target.value }))}
+                    rows={12}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-sm focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent font-light text-gray-900 resize-none"
+                    placeholder="請輸入回覆內容..."
+                  />
+                </div>
+
+                {/* Original Message Reference */}
+                <div className="border-t pt-6">
+                  <h3 className="text-sm font-light text-gray-500 uppercase tracking-wider mb-4">
+                    原始訊息
+                  </h3>
+                  <div className="bg-gray-50 p-4 rounded-sm">
+                    <div className="text-sm text-gray-600 font-light mb-2">
+                      來自: {selectedContact.name} ({selectedContact.email})
+                    </div>
+                    <div className="text-sm text-gray-600 font-light mb-2">
+                      時間: {new Date(selectedContact.submittedAt).toLocaleString('zh-TW')}
+                    </div>
+                    {selectedContact.projectType && (
+                      <div className="text-sm text-gray-600 font-light mb-2">
+                        項目類型: {selectedContact.projectType}
+                      </div>
+                    )}
+                    <div className="text-sm text-gray-900 font-light whitespace-pre-wrap mt-3 pt-3 border-t border-gray-200">
+                      {selectedContact.message}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex justify-end space-x-4 mt-8">
+                <button
+                  onClick={() => {
+                    setShowReplyModal(false)
+                    setReplyForm({ subject: '', message: '' })
+                  }}
+                  className="px-6 py-2 border border-gray-300 text-gray-700 font-light text-sm tracking-wide hover:bg-gray-50 transition-colors duration-200"
+                >
+                  取消
+                </button>
+                <button
+                  onClick={handleSendReply}
+                  className="px-6 py-2 bg-blue-600 text-white font-light text-sm tracking-wide hover:bg-blue-700 transition-colors duration-200"
+                >
+                  發送回覆
+                </button>
               </div>
             </div>
           </div>

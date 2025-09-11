@@ -1,0 +1,26 @@
+{
+  "submissions": [
+    {
+      "id": "contact_1",
+      "name": "張先生",
+      "email": "zhang@example.com",
+      "phone": "0912345678",
+      "projectType": "新建住宅",
+      "budget": "1000-2000萬",
+      "message": "我想要建造一間現代風格的住宅，地點在台北市，預計明年開始施工。",
+      "submittedAt": "2024-01-15T10:00:00.000Z",
+      "status": "new"
+    },
+    {
+      "id": "contact_1757401359922_5yeecl5xo",
+      "name": "and",
+      "email": "andy@uphsouetw.com",
+      "phone": "095511234v",
+      "projectType": "",
+      "budget": "",
+      "message": "八宅",
+      "submittedAt": "2025-09-09T07:02:39.922Z",
+      "status": "new"
+    }
+  ]
+}

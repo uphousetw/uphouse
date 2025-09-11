@@ -1,76 +1,59 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 
 interface Project {
   id: number
   title: string
   description: string
-  image: string
+  image?: string
   completionDate: string
   category: string
+  location?: string
+  area?: string
+  features?: string[]
 }
-
-const sampleProjects: Project[] = [
-  {
-    id: 1,
-    title: "現代簡約別墅",
-    description: "位於台北市的現代簡約風格別墅，採用大面積玻璃窗設計，讓自然光線充分進入室內空間。開放式格局結合精緻的建材選擇，創造出優雅而舒適的居住環境。",
-    image: "/api/placeholder/400/300",
-    completionDate: "2024年6月",
-    category: "住宅"
-  },
-  {
-    id: 2,
-    title: "都會雅居",
-    description: "坐落於新北市的都會住宅設計，強調空間的多功能性與收納效率。透過巧妙的格局規劃，在有限的空間內創造出寬敞明亮的居住感受。",
-    image: "/api/placeholder/400/300",
-    completionDate: "2024年9月",
-    category: "住宅"
-  },
-  {
-    id: 3,
-    title: "自然風格住宅",
-    description: "融合自然元素的住宅設計，大量運用木質材料與石材，搭配綠意植栽，營造出與自然和諧共生的居住空間。",
-    image: "/api/placeholder/400/300",
-    completionDate: "2024年12月",
-    category: "住宅"
-  },
-  {
-    id: 4,
-    title: "城市景觀住宅",
-    description: "充分利用城市景觀優勢的高樓住宅設計，透過大片落地窗將城市美景引入室內，同時注重隱私保護與生活品質。",
-    image: "/api/placeholder/400/300",
-    completionDate: "2025年3月",
-    category: "住宅"
-  },
-  {
-    id: 5,
-    title: "極簡主義住宅",
-    description: "貫徹極簡主義理念的住宅設計，以簡潔的線條與純淨的色彩為主軸，創造出寧靜而富有詩意的生活空間。",
-    image: "/api/placeholder/400/300",
-    completionDate: "2025年6月",
-    category: "住宅"
-  },
-  {
-    id: 6,
-    title: "智慧環保住宅",
-    description: "結合智慧家居系統與環保建材的前瞻性住宅設計，實現節能減碳的同時，提供便利舒適的現代生活體驗。",
-    image: "/api/placeholder/400/300",
-    completionDate: "2025年9月",
-    category: "住宅"
-  }
-]
 
 const PROJECTS_PER_PAGE = 3
 
 export default function Portfolio() {
   const [currentPage, setCurrentPage] = useState(1)
+  const [projects, setProjects] = useState<Project[]>([])
+  const [loading, setLoading] = useState(true)
   
-  const totalPages = Math.ceil(sampleProjects.length / PROJECTS_PER_PAGE)
+  useEffect(() => {
+    loadProjects()
+  }, [])
+
+  const loadProjects = async () => {
+    try {
+      const response = await fetch('/api/projects')
+      if (response.ok) {
+        const data = await response.json()
+        setProjects(data.projects || [])
+      }
+    } catch (error) {
+      console.error('Failed to load projects:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
+  
+  const totalPages = Math.ceil(projects.length / PROJECTS_PER_PAGE)
   const startIndex = (currentPage - 1) * PROJECTS_PER_PAGE
-  const currentProjects = sampleProjects.slice(startIndex, startIndex + PROJECTS_PER_PAGE)
+  const currentProjects = projects.slice(startIndex, startIndex + PROJECTS_PER_PAGE)
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-white flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900 mx-auto mb-4"></div>
+          <p className="text-gray-600 font-light">載入中...</p>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="min-h-screen bg-white">
@@ -98,8 +81,30 @@ export default function Portfolio() {
                 <div className="bg-white rounded-sm shadow-sm overflow-hidden hover:shadow-lg transition-all duration-300">
                   {/* Project Image */}
                   <div className="relative h-80 bg-gray-200 overflow-hidden">
-                    <div className="absolute inset-0 bg-gray-200 flex items-center justify-center">
-                      <span className="text-gray-400 font-light">專案圖片</span>
+                    {project.image && project.image !== '/api/placeholder/800/600' ? (
+                      <img 
+                        src={project.image} 
+                        alt={project.title}
+                        className="w-full h-full object-cover"
+                        onError={(e) => {
+                          const target = e.target as HTMLImageElement;
+                          target.style.display = 'none';
+                          const placeholder = target.parentElement?.querySelector('.placeholder-content');
+                          if (placeholder) {
+                            placeholder.classList.remove('hidden');
+                          }
+                        }}
+                      />
+                    ) : null}
+                    <div className={`absolute inset-0 bg-gray-200 flex items-center justify-center placeholder-content ${project.image && project.image !== '/api/placeholder/800/600' ? 'hidden' : ''}`}>
+                      <div className="text-center">
+                        <div className="w-16 h-16 bg-gray-300 rounded-lg flex items-center justify-center mx-auto mb-2">
+                          <svg className="w-8 h-8 text-gray-500" fill="currentColor" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clipRule="evenodd" />
+                          </svg>
+                        </div>
+                        <span className="text-gray-500 font-light text-sm">專案圖片</span>
+                      </div>
                     </div>
                     <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-10 transition-all duration-300"></div>
                   </div>

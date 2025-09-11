@@ -15,7 +15,7 @@ export interface Project {
 }
 
 // Shared mock database - In production, replace with real database
-export let projects: Project[] = [
+export const projects: Project[] = [
   {
     id: 1,
     title: "現代簡約別墅",

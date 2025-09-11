@@ -1,0 +1,63 @@
+/* LINE Seed Traditional Chinese Font */
+
+@font-face {
+  font-family: 'LINE Seed TW';
+  src: url('/fonts/LINESeedTW_OTF_Th.woff2') format('woff2'),
+       url('/fonts/LINESeedTW_OTF_Th.woff') format('woff');
+  font-weight: 300;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'LINE Seed TW';
+  src: url('/fonts/LINESeedTW_OTF_Rg.woff2') format('woff2'),
+       url('/fonts/LINESeedTW_OTF_Rg.woff') format('woff');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'LINE Seed TW';
+  src: url('/fonts/LINESeedTW_OTF_Bd.woff2') format('woff2'),
+       url('/fonts/LINESeedTW_OTF_Bd.woff') format('woff');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'LINE Seed TW';
+  src: url('/fonts/LINESeedTW_OTF_Eb.woff2') format('woff2'),
+       url('/fonts/LINESeedTW_OTF_Eb.woff') format('woff');
+  font-weight: 800;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* Font utility classes */
+.font-line-seed {
+  font-family: 'LINE Seed TW', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+}
+
+/* Weight specific classes */
+.font-line-seed-thin {
+  font-family: 'LINE Seed TW', sans-serif;
+  font-weight: 300;
+}
+
+.font-line-seed-regular {
+  font-family: 'LINE Seed TW', sans-serif;
+  font-weight: 400;
+}
+
+.font-line-seed-bold {
+  font-family: 'LINE Seed TW', sans-serif;
+  font-weight: 700;
+}
+
+.font-line-seed-extrabold {
+  font-family: 'LINE Seed TW', sans-serif;
+  font-weight: 800;
+}

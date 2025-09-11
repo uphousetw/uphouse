@@ -11,7 +11,7 @@ export interface ContactSubmission {
 }
 
 // Shared mock database - In production, replace with real database
-export let contactSubmissions: ContactSubmission[] = [
+export const contactSubmissions: ContactSubmission[] = [
   {
     id: 'contact_1',
     name: '張先生',
