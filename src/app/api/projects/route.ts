@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getAllProjects, addProject, updateProject } from '@/lib/storage/projectStorage'
+import { getAllNetlifyProjects, createNetlifyProject } from '@/lib/netlify-cms'
 
 // GET /api/projects - Get all projects with caching
 export async function GET(request: NextRequest) {
@@ -7,8 +8,22 @@ export async function GET(request: NextRequest) {
   const page = parseInt(searchParams.get('page') || '1')
   const limit = parseInt(searchParams.get('limit') || '10')
   const category = searchParams.get('category')
+  const useNetlify = searchParams.get('netlify') === 'true'
 
-  let filteredProjects = getAllProjects()
+  let filteredProjects
+
+  if (useNetlify) {
+    // Use Netlify CMS data
+    filteredProjects = getAllNetlifyProjects().map((project, index) => ({
+      id: index + 1,
+      ...project,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    }))
+  } else {
+    // Use existing file storage
+    filteredProjects = getAllProjects()
+  }
 
   if (category) {
     filteredProjects = filteredProjects.filter(project => project.category === category)
@@ -40,6 +55,7 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
+    const useNetlify = body.useNetlify === true
 
     const projectData = {
       title: body.title,
@@ -55,9 +71,15 @@ export async function POST(request: NextRequest) {
       brandLogos: body.brandLogos || []
     }
 
-    const newProject = addProject(projectData)
-
-    return NextResponse.json(newProject, { status: 201 })
+    if (useNetlify) {
+      // Create in Netlify CMS format
+      createNetlifyProject(projectData)
+      return NextResponse.json({ message: 'Project created in Netlify CMS', data: projectData }, { status: 201 })
+    } else {
+      // Use existing file storage
+      const newProject = addProject(projectData)
+      return NextResponse.json(newProject, { status: 201 })
+    }
   } catch (error) {
     console.error('Error creating project:', error)
     return NextResponse.json(

@@ -26,20 +26,34 @@ export async function PUT(request: NextRequest, { params }: Props) {
     const { id } = await params
     const body = await request.json()
 
-    const updatedProject = updateProject(parseInt(id), body)
+    console.log('API PUT request - ID:', id, 'Body:', body)
+
+    const projectId = parseInt(id)
+    if (isNaN(projectId)) {
+      console.error('Invalid project ID:', id)
+      return NextResponse.json(
+        { error: 'Invalid project ID' },
+        { status: 400 }
+      )
+    }
+
+    const updatedProject = updateProject(projectId, body)
 
     if (!updatedProject) {
+      console.error('Project not found for ID:', projectId)
       return NextResponse.json(
         { error: 'Project not found' },
         { status: 404 }
       )
     }
 
+    console.log('Project updated successfully:', updatedProject.id)
     return NextResponse.json(updatedProject)
   } catch (error) {
     console.error('Error updating project:', error)
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error'
     return NextResponse.json(
-      { error: 'Failed to update project' },
+      { error: `Failed to update project: ${errorMessage}` },
       { status: 500 }
     )
   }

@@ -81,11 +81,26 @@ export function loadProjects(): Project[] {
 // Save projects to file
 export function saveProjects(projects: Project[]): void {
   try {
+    console.log('Saving projects to:', PROJECTS_FILE)
     ensureStorageDir()
-    fs.writeFileSync(PROJECTS_FILE, JSON.stringify(projects, null, 2), 'utf8')
+
+    // Check if directory exists and is writable
+    if (!fs.existsSync(STORAGE_DIR)) {
+      console.log('Storage directory does not exist, creating:', STORAGE_DIR)
+      fs.mkdirSync(STORAGE_DIR, { recursive: true })
+    }
+
+    const data = JSON.stringify(projects, null, 2)
+    console.log('Writing data length:', data.length)
+
+    fs.writeFileSync(PROJECTS_FILE, data, 'utf8')
+    console.log('Projects saved successfully')
   } catch (error) {
     console.error('Error saving projects:', error)
-    throw new Error('Failed to save projects')
+    console.error('Storage dir:', STORAGE_DIR)
+    console.error('Projects file:', PROJECTS_FILE)
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error'
+    throw new Error(`Failed to save projects: ${errorMessage}`)
   }
 }
 
@@ -120,24 +135,39 @@ export function addProject(projectData: Omit<Project, 'id' | 'createdAt' | 'upda
 
 // Update existing project
 export function updateProject(id: number, updateData: Partial<Project>): Project | null {
-  const projects = loadProjects()
-  const projectIndex = projects.findIndex(p => p.id === id)
+  try {
+    console.log('Updating project with ID:', id)
+    console.log('Update data:', updateData)
 
-  if (projectIndex === -1) {
-    return null
+    const projects = loadProjects()
+    console.log('Loaded projects count:', projects.length)
+
+    const projectIndex = projects.findIndex(p => p.id === id)
+    console.log('Project index:', projectIndex)
+
+    if (projectIndex === -1) {
+      console.log('Project not found with ID:', id)
+      return null
+    }
+
+    const updatedProject: Project = {
+      ...projects[projectIndex],
+      ...updateData,
+      id, // Ensure ID doesn't change
+      updatedAt: new Date().toISOString()
+    }
+
+    console.log('Updated project:', updatedProject)
+
+    projects[projectIndex] = updatedProject
+    saveProjects(projects)
+
+    console.log('Project updated successfully')
+    return updatedProject
+  } catch (error) {
+    console.error('Error in updateProject:', error)
+    throw error
   }
-
-  const updatedProject: Project = {
-    ...projects[projectIndex],
-    ...updateData,
-    id, // Ensure ID doesn't change
-    updatedAt: new Date().toISOString()
-  }
-
-  projects[projectIndex] = updatedProject
-  saveProjects(projects)
-
-  return updatedProject
 }
 
 // Delete project
