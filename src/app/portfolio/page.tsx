@@ -34,7 +34,7 @@ export default function Portfolio() {
     try {
       const response = await fetch('/api/projects', {
         headers: {
-          'Cache-Control': 'public, max-age=300, stale-while-revalidate=600'
+          'Cache-Control': 'no-cache'
         }
       })
       if (response.ok) {
@@ -115,17 +115,18 @@ export default function Portfolio() {
                           }
                         }}
                       />
-                    ) : null}
-                    <div className={`absolute inset-0 bg-gray-200 flex items-center justify-center placeholder-content ${project.image && project.image !== '/api/placeholder/800/600' ? 'hidden' : ''}`}>
-                      <div className="text-center">
-                        <div className="w-16 h-16 bg-gray-300 rounded-lg flex items-center justify-center mx-auto mb-2">
-                          <svg className="w-8 h-8 text-gray-500" fill="currentColor" viewBox="0 0 20 20">
-                            <path fillRule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clipRule="evenodd" />
-                          </svg>
+                    ) : (
+                      <div className="absolute inset-0 bg-gray-200 flex items-center justify-center placeholder-content">
+                        <div className="text-center">
+                          <div className="w-16 h-16 bg-gray-300 rounded-lg flex items-center justify-center mx-auto mb-2">
+                            <svg className="w-8 h-8 text-gray-500" fill="currentColor" viewBox="0 0 20 20">
+                              <path fillRule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clipRule="evenodd" />
+                            </svg>
+                          </div>
+                          <span className="text-gray-500 font-light text-sm">專案圖片</span>
                         </div>
-                        <span className="text-gray-500 font-light text-sm">專案圖片</span>
                       </div>
-                    </div>
+                    )}
                     <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-10 transition-all duration-300"></div>
                   </div>
                   

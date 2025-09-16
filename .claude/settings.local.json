@@ -50,7 +50,12 @@
       "WebFetch(domain:cdn.dribbble.com)",
       "WebFetch(domain:github.com)",
       "WebFetch(domain:seed.line.me)",
-      "Bash(unzip:*)"
+      "Bash(unzip:*)",
+      "Bash(npx kill-port:*)",
+      "Bash(npm uninstall:*)",
+      "Bash(node:*)",
+      "Bash(npm rebuild:*)",
+      "Bash(set NODE_OPTIONS=\"--max-old-space-size=4096\")"
     ],
     "deny": [],
     "ask": []

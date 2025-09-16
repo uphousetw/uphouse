@@ -24,33 +24,34 @@ const BrandLogosSection = memo(function BrandLogosSection({ brandLogos }: BrandL
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-6">
           {brandLogos.map((logo, index) => (
             <div key={`${logo.name}-${index}`} className="bg-white rounded-lg shadow-sm p-4 text-center hover:shadow-md transition-shadow duration-300">
-              <div className="w-full aspect-[3/2] bg-gray-100 rounded-lg flex items-center justify-center border border-gray-200 overflow-hidden mb-3">
+              <div className="w-full aspect-[3/2] bg-gray-100 rounded-lg flex items-center justify-center border border-gray-200 overflow-hidden mb-3 relative">
                 {logo.logoUrl ? (
                   <Image
                     src={logo.logoUrl}
                     alt={logo.name}
                     fill
-                    className="object-contain transition-transform duration-300 hover:scale-105"
+                    className="object-contain p-2 transition-transform duration-300 hover:scale-105"
                     onError={(e) => {
                       const target = e.target as HTMLImageElement
                       target.style.display = 'none'
                       const parent = target.parentElement
                       if (parent) {
-                        parent.innerHTML = `
-                          <div class="bg-red-500 text-white p-2 rounded text-xs font-medium text-center leading-tight">
-                            ${logo.name}<br />LOGO
-                          </div>
-                        `
+                        const fallbackDiv = parent.querySelector('.logo-fallback')
+                        if (fallbackDiv) {
+                          fallbackDiv.classList.remove('hidden')
+                        }
                       }
                     }}
                   />
-                ) : (
-                  <div className="bg-red-500 text-white p-2 rounded text-xs font-medium text-center leading-tight">
-                    {logo.name}<br />LOGO
+                ) : null}
+                <div className={`${logo.logoUrl ? 'hidden' : ''} logo-fallback bg-gradient-to-br from-blue-500 to-purple-600 text-white p-3 rounded text-xs font-medium text-center leading-tight w-full h-full flex items-center justify-center`}>
+                  <div>
+                    <div className="font-bold">{logo.name}</div>
+                    <div className="text-xs opacity-90">LOGO</div>
                   </div>
-                )}
+                </div>
               </div>
-              <div className="text-sm font-medium text-gray-900 mb-1">{logo.name}</div>
+              <div className="text-sm font-medium text-gray-900 mb-1 truncate">{logo.name}</div>
               <div className="text-xs text-gray-500">{logo.category}</div>
             </div>
           ))}

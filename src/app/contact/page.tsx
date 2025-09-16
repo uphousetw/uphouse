@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import Image from 'next/image'
 
 export default function Contact() {
   const [formData, setFormData] = useState({
@@ -103,11 +104,18 @@ export default function Contact() {
                 取得聯繫
               </h2>
               <div className="h-1 w-16 bg-gray-900 mb-8"></div>
-              
-              <p className="text-lg text-gray-600 font-light leading-relaxed mb-12">
-                無論您是想要新建住宅、改建現有空間，或是有任何建築設計相關的問題，
-                我們的專業團隊都很樂意為您提供諮詢服務。
-              </p>
+
+              {/* Company Image */}
+              <div className="mb-12">
+                <div className="relative w-full h-64 bg-gray-100 rounded-lg overflow-hidden shadow-lg">
+                  <Image
+                    src="/images/gallery/拾壹間.jpg"
+                    alt="向上建設公司形象"
+                    fill
+                    className="object-cover"
+                  />
+                </div>
+              </div>
 
               <div className="space-y-8">
                 <div className="flex items-start">
@@ -220,7 +228,7 @@ export default function Contact() {
 
                 <div>
                   <label htmlFor="projectType" className="block text-sm font-light text-gray-700 mb-2 tracking-wide">
-                    建案名稱
+                    洽詢內容
                   </label>
                   <input
                     type="text"
@@ -229,7 +237,7 @@ export default function Contact() {
                     value={formData.projectType}
                     onChange={handleInputChange}
                     className="w-full px-4 py-3 border border-gray-300 focus:ring-1 focus:ring-gray-900 focus:border-gray-900 font-light text-gray-900 placeholder-gray-500"
-                    placeholder="請輸入建案名稱"
+                    placeholder="歡迎留言"
                   />
                 </div>
 

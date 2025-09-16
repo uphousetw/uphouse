@@ -27,12 +27,12 @@ export default function About() {
               </h2>
               <div className="h-1 w-16 bg-gray-900 mb-8"></div>
               <p className="text-lg text-gray-600 font-light leading-relaxed mb-8">
-                向上建設成立於2018年，專精於住宅建築設計領域。
+                向上建設成立於2022年，專精於苗栗高鐵特區。
                 我們深信每個家庭都值得擁有一個完美的居住空間，
-                因此我們致力於將專業的設計理念與實用的生活需求完美結合。
+                因此我們致力於完美結合專業的設計與實用的生活。
               </p>
               <p className="text-lg text-gray-600 font-light leading-relaxed mb-8">
-                我們的團隊由資深建築師、室內設計師和工程專家組成，
+                我們的團隊由資深建築師，機電技師和工程專家組成，
                 每個項目都經過細膩的規劃與精心的執行，
                 確保為客戶打造出既美觀又實用的理想住宅。
               </p>
@@ -58,8 +58,8 @@ export default function About() {
             </h2>
             <div className="h-1 w-16 bg-gray-900 mx-auto mb-8"></div>
             <p className="text-lg text-gray-600 font-light max-w-2xl mx-auto leading-relaxed">
-              我們的核心價值指導著每一個設計決策，
-              確保為客戶提供最優質的建築設計服務。
+              向上建設，向下紮根
+              優質建築從細節做起。
             </p>
           </div>
 
@@ -75,8 +75,8 @@ export default function About() {
               </h3>
               <p className="text-gray-600 font-light leading-relaxed">
                 持續追求創新的設計理念，
-                結合國際趨勢與在地文化，
-                為每個項目注入獨特的設計靈魂。
+                打造苗栗高鐵特區美感建築。
+                
               </p>
             </div>
 
@@ -90,8 +90,7 @@ export default function About() {
                 品質保證
               </h3>
               <p className="text-gray-600 font-light leading-relaxed">
-                嚴格的品質管控標準，
-                從材料選擇到施工工藝，
+                從YKK到TOTO
                 每個環節都力求完美，確保最高品質。
               </p>
             </div>
@@ -107,7 +106,6 @@ export default function About() {
               </h3>
               <p className="text-gray-600 font-light leading-relaxed">
                 以客戶需求為出發點，
-                提供個人化的設計方案與專業建議，
                 打造專屬的理想居住空間。
               </p>
             </div>
@@ -115,56 +113,6 @@ export default function About() {
         </div>
       </section>
 
-      {/* Team */}
-      <section className="py-24">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-20">
-            <h2 className="text-3xl lg:text-4xl font-light text-gray-900 mb-6 tracking-tight">
-              專業團隊
-            </h2>
-            <div className="h-1 w-16 bg-gray-900 mx-auto mb-8"></div>
-            <p className="text-lg text-gray-600 font-light max-w-2xl mx-auto leading-relaxed">
-              我們的專業團隊擁有豐富的建築設計經驗，
-              致力於為每位客戶提供最優質的服務。
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-12">
-            {[
-              {
-                name: "林建築師",
-                position: "主持建築師",
-                description: "擁有20年建築設計經驗，專精於現代住宅設計，曾獲得多項建築設計獎項。"
-              },
-              {
-                name: "張設計師",
-                position: "資深室內設計師",
-                description: "15年室內設計經驗，擅長空間規劃與材質搭配，為客戶創造舒適的居住環境。"
-              },
-              {
-                name: "王工程師",
-                position: "結構工程師",
-                description: "結構工程專家，確保每個建築項目的安全性與穩定性，注重工程品質與施工效率。"
-              }
-            ].map((member, index) => (
-              <div key={index} className="text-center">
-                <div className="w-48 h-48 bg-gray-200 rounded-full mx-auto mb-8 flex items-center justify-center">
-                  <span className="text-gray-400 font-light">團隊成員照片</span>
-                </div>
-                <h3 className="text-xl font-light text-gray-900 mb-2 tracking-wide">
-                  {member.name}
-                </h3>
-                <p className="text-gray-500 font-light mb-4 text-sm uppercase tracking-wider">
-                  {member.position}
-                </p>
-                <p className="text-gray-600 font-light leading-relaxed text-sm">
-                  {member.description}
-                </p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
 
       {/* Company History */}
       <section className="py-24 bg-gray-50">
@@ -182,24 +130,24 @@ export default function About() {
             <div className="space-y-16">
               {[
                 {
-                  year: "2018",
-                  title: "公司成立",
-                  description: "向上建設正式成立，專注於住宅建築設計服務。"
-                },
-                {
-                  year: "2020",
-                  title: "業務擴展",
-                  description: "團隊擴充至15人，完成第50個住宅設計項目。"
-                },
-                {
                   year: "2022",
-                  title: "獲得認證",
-                  description: "獲得綠建築設計認證，致力於永續建築發展。"
+                  title: "公司成立",
+                  description: "由三位有志於建築美感及空間配置的創辦人成立向上建設"
+                },
+                {
+                  year: "2023",
+                  title: "第一案推出",
+                  description: "在後龍鎮新東路推出向上第一個建案-向上拾壹間，並於三個月完銷"
                 },
                 {
                   year: "2024",
+                  title: "第一案結構完成",
+                  description: "拾壹間結構體完成，全白外觀，搭配清水模的美感建築"
+                },
+                {
+                  year: "2025",
                   title: "持續成長",
-                  description: "累計完成超過100個住宅項目，建立良好市場口碑。"
+                  description: "向上第二案-八宅熱銷中"
                 }
               ].map((milestone, index) => (
                 <div key={index} className={`relative flex items-center ${index % 2 === 0 ? 'justify-start' : 'justify-end'}`}>

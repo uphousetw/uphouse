@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { projects, type Project } from '@/lib/data/projects'
+import { getAllProjects, addProject, updateProject } from '@/lib/storage/projectStorage'
 
 // GET /api/projects - Get all projects with caching
 export async function GET(request: NextRequest) {
@@ -8,10 +8,10 @@ export async function GET(request: NextRequest) {
   const limit = parseInt(searchParams.get('limit') || '10')
   const category = searchParams.get('category')
 
-  let filteredProjects = projects
+  let filteredProjects = getAllProjects()
 
   if (category) {
-    filteredProjects = projects.filter(project => project.category === category)
+    filteredProjects = filteredProjects.filter(project => project.category === category)
   }
 
   const startIndex = (page - 1) * limit
@@ -32,7 +32,7 @@ export async function GET(request: NextRequest) {
   // Add caching headers
   response.headers.set('Cache-Control', 'public, s-maxage=300, stale-while-revalidate=600')
   response.headers.set('CDN-Cache-Control', 'public, s-maxage=600')
-  
+
   return response
 }
 
@@ -40,9 +40,8 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
-    
-    const newProject: Project = {
-      id: Math.max(...projects.map(p => p.id), 0) + 1,
+
+    const projectData = {
       title: body.title,
       description: body.description,
       fullDescription: body.fullDescription,
@@ -53,18 +52,49 @@ export async function POST(request: NextRequest) {
       area: body.area,
       features: body.features || [],
       gallery: body.gallery || [],
-      brandLogos: body.brandLogos || [],
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
+      brandLogos: body.brandLogos || []
     }
 
-    projects.push(newProject)
+    const newProject = addProject(projectData)
 
     return NextResponse.json(newProject, { status: 201 })
-  } catch {
+  } catch (error) {
+    console.error('Error creating project:', error)
     return NextResponse.json(
-      { error: 'Invalid request body' },
-      { status: 400 }
+      { error: 'Failed to create project' },
+      { status: 500 }
+    )
+  }
+}
+
+// PUT /api/projects - Update existing project (Admin only)
+export async function PUT(request: NextRequest) {
+  try {
+    const body = await request.json()
+    const { id, ...updateData } = body
+
+    if (!id) {
+      return NextResponse.json(
+        { error: 'Project ID is required' },
+        { status: 400 }
+      )
+    }
+
+    const updatedProject = updateProject(parseInt(id), updateData)
+
+    if (!updatedProject) {
+      return NextResponse.json(
+        { error: 'Project not found' },
+        { status: 404 }
+      )
+    }
+
+    return NextResponse.json(updatedProject, { status: 200 })
+  } catch (error) {
+    console.error('Error updating project:', error)
+    return NextResponse.json(
+      { error: 'Failed to update project' },
+      { status: 500 }
     )
   }
 }

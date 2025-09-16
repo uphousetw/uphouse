@@ -1,6 +1,7 @@
 'use client'
 
 import Link from 'next/link'
+import Image from 'next/image'
 import { notFound } from 'next/navigation'
 import { useState, useEffect } from 'react'
 import BrandLogosSection from '@/components/BrandLogosSection'
@@ -37,7 +38,7 @@ export default function ProjectDetail({ params }: Props) {
         
         const response = await fetch(`/api/projects/${id}`, {
           headers: {
-            'Cache-Control': 'public, max-age=300, stale-while-revalidate=600'
+            'Cache-Control': 'no-cache'
           }
         })
         
@@ -96,10 +97,27 @@ export default function ProjectDetail({ params }: Props) {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
             {/* Project Image */}
             <div className="order-2 lg:order-1">
-              <div className="aspect-[4/3] bg-gray-200 rounded-sm overflow-hidden">
-                <div className="w-full h-full flex items-center justify-center">
-                  <span className="text-gray-400 font-light text-lg">主要專案圖片</span>
-                </div>
+              <div className="aspect-[4/3] bg-gray-200 rounded-sm overflow-hidden relative">
+                {project.image && project.image !== '/api/placeholder/800/600' ? (
+                  <Image
+                    src={project.image}
+                    alt={project.title}
+                    fill
+                    className="object-cover"
+                    onError={(e) => {
+                      const target = e.target as HTMLImageElement;
+                      target.style.display = 'none';
+                      const placeholder = target.parentElement?.querySelector('.placeholder-fallback');
+                      if (placeholder) {
+                        placeholder.classList.remove('hidden');
+                      }
+                    }}
+                  />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center placeholder-fallback">
+                    <span className="text-gray-400 font-light text-lg">主要專案圖片</span>
+                  </div>
+                )}
               </div>
             </div>
 
@@ -144,29 +162,6 @@ export default function ProjectDetail({ params }: Props) {
         <BrandLogosSection brandLogos={project.brandLogos} />
       )}
 
-      {/* Project Gallery */}
-      <section className="py-16">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <h2 className="text-3xl font-light text-gray-900 mb-12 tracking-tight">
-            項目圖集
-          </h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {project.gallery && project.gallery.length > 0 ? (
-              project.gallery.map((image, index) => (
-                <div key={index} className="aspect-[4/3] bg-gray-200 rounded-sm overflow-hidden hover:shadow-md transition-shadow duration-300">
-                  <div className="w-full h-full flex items-center justify-center">
-                    <span className="text-gray-400 font-light">圖片 {index + 1}</span>
-                  </div>
-                </div>
-              ))
-            ) : (
-              <div className="col-span-full text-center py-12">
-                <p className="text-gray-500 font-light">暫無圖片集</p>
-              </div>
-            )}
-          </div>
-        </div>
-      </section>
     </div>
   )
 }

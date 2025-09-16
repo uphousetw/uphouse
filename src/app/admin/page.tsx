@@ -85,13 +85,13 @@ export default function AdminDashboard() {
       // Load all data in parallel for better performance
       const [contactResponse, projectsResponse, heroResponse] = await Promise.all([
         fetch('/api/contact', {
-          headers: { 'Cache-Control': 'public, max-age=60, stale-while-revalidate=120' }
+          headers: { 'Cache-Control': 'no-cache' }
         }),
         fetch('/api/projects', {
-          headers: { 'Cache-Control': 'public, max-age=300, stale-while-revalidate=600' }
+          headers: { 'Cache-Control': 'no-cache' }
         }),
         fetch('/api/hero-images', {
-          headers: { 'Cache-Control': 'public, max-age=600, stale-while-revalidate=1200' }
+          headers: { 'Cache-Control': 'no-cache' }
         })
       ])
 
@@ -235,21 +235,23 @@ export default function AdminDashboard() {
       if (editingProject) {
         // Update existing project
         console.log('Updating project with ID:', editingProject.id)
-        const response = await fetch(`/api/projects/${editingProject.id}`, {
+        const response = await fetch('/api/projects', {
           method: 'PUT',
           headers: {
             'Content-Type': 'application/json',
           },
-          body: JSON.stringify(projectData),
+          body: JSON.stringify({ ...projectData, id: editingProject.id }),
         })
 
         console.log('Update response status:', response.status)
         if (response.ok) {
           const updatedProject = await response.json()
           console.log('Updated project:', updatedProject)
-          setProjects(prev => 
+          setProjects(prev =>
             prev.map(p => p.id === editingProject.id ? updatedProject : p)
           )
+          // Reload all data to ensure consistency
+          await loadData()
           alert('作品更新成功')
         } else {
           const errorText = await response.text()
@@ -274,6 +276,8 @@ export default function AdminDashboard() {
           const newProject = await response.json()
           console.log('New project:', newProject)
           setProjects(prev => [...prev, newProject])
+          // Reload all data to ensure consistency
+          await loadData()
           alert('作品新增成功')
         } else {
           console.error('Create failed:', response.statusText)
@@ -788,17 +792,18 @@ export default function AdminDashboard() {
                           }
                         }}
                       />
-                    ) : null}
-                    <div className={`absolute inset-0 flex items-center justify-center placeholder-text ${project.image && project.image !== '/api/placeholder/800/600' ? 'hidden' : ''}`}>
-                      <div className="text-center">
-                        <div className="w-16 h-16 bg-gray-300 rounded-lg flex items-center justify-center mx-auto mb-2">
-                          <svg className="w-8 h-8 text-gray-500" fill="currentColor" viewBox="0 0 20 20">
-                            <path fillRule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clipRule="evenodd" />
-                          </svg>
+                    ) : (
+                      <div className="absolute inset-0 flex items-center justify-center placeholder-text">
+                        <div className="text-center">
+                          <div className="w-16 h-16 bg-gray-300 rounded-lg flex items-center justify-center mx-auto mb-2">
+                            <svg className="w-8 h-8 text-gray-500" fill="currentColor" viewBox="0 0 20 20">
+                              <path fillRule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clipRule="evenodd" />
+                            </svg>
+                          </div>
+                          <span className="text-gray-500 font-light text-sm">專案圖片</span>
                         </div>
-                        <span className="text-gray-500 font-light text-sm">專案圖片</span>
                       </div>
-                    </div>
+                    )}
                   </div>
                   <div className="p-6">
                     <div className="flex items-center justify-between mb-2">
@@ -875,13 +880,12 @@ export default function AdminDashboard() {
                 
                 // Handle file uploads
                 const imageFile = formData.get('image') as File
-                const galleryFiles = formData.getAll('gallery') as File[]
-                
+                const brandLogoFiles = formData.getAll('brandLogos') as File[]
+
                 console.log('Image file:', imageFile)
-                console.log('Gallery files:', galleryFiles)
-                
+                console.log('Brand logo files:', brandLogoFiles)
+
                 let imageUrl = editingProject?.image || '/api/placeholder/800/600'
-                let galleryUrls = editingProject?.gallery || []
                 let brandLogosData = editingProject?.brandLogos || []
                 
                 // Handle actual file upload
@@ -912,33 +916,38 @@ export default function AdminDashboard() {
                   }
                 }
                 
-                if (galleryFiles.length > 0) {
-                  // Simulate gallery upload - in production replace with actual upload
-                  galleryUrls = galleryFiles.map(file => 
-                    file.size > 0 ? `/uploads/gallery/${Date.now()}_${file.name}` : ''
-                  ).filter(url => url)
-                }
+                // Handle brand logo uploads
+                if (brandLogoFiles.length > 0) {
+                  try {
+                    const uploadPromises = brandLogoFiles
+                      .filter(file => file.size > 0)
+                      .map(async (file) => {
+                        const uploadFormData = new FormData()
+                        uploadFormData.append('file', file)
+                        uploadFormData.append('folder', 'brand-logos')
 
-                // Handle brand names (simplified)
-                const brandNamesText = formData.get('brandNames') as string
-                if (brandNamesText && brandNamesText.trim()) {
-                  const brandLines = brandNamesText.split('\n')
-                    .map(line => line.trim())
-                    .filter(line => line.length > 0)
-                  
-                  brandLogosData = brandLines.map((line, index) => {
-                    const parts = line.split(',')
-                    const name = parts[0] ? parts[0].trim() : `品牌 ${index + 1}`
-                    const category = parts[1] ? parts[1].trim() : '建材'
-                    
-                    return {
-                      name,
-                      category
-                    }
-                  })
-                } else {
-                  // Keep existing brandLogos if no new data provided
-                  brandLogosData = editingProject?.brandLogos || []
+                        const uploadResponse = await fetch('/api/upload', {
+                          method: 'POST',
+                          body: uploadFormData
+                        })
+
+                        if (uploadResponse.ok) {
+                          const uploadResult = await uploadResponse.json()
+                          return {
+                            name: file.name.split('.')[0],
+                            category: '合作品牌',
+                            logoUrl: uploadResult.url
+                          }
+                        }
+                        return null
+                      })
+
+                    const uploadedLogos = (await Promise.all(uploadPromises)).filter(logo => logo !== null)
+                    brandLogosData = [...brandLogosData, ...uploadedLogos]
+                    console.log('Brand logos uploaded:', uploadedLogos)
+                  } catch (error) {
+                    console.error('Error uploading brand logos:', error)
+                  }
                 }
                 
                 const projectData = {
@@ -949,11 +958,11 @@ export default function AdminDashboard() {
                   category: formData.get('category') as string || '',
                   location: formData.get('location') as string || '',
                   area: formData.get('area') as string || '',
-                  features: formData.get('features') ? 
-                    (formData.get('features') as string).split(',').map(f => f.trim()).filter(f => f) : 
+                  features: formData.get('features') ?
+                    (formData.get('features') as string).split(',').map(f => f.trim()).filter(f => f) :
                     [],
                   image: imageUrl,
-                  gallery: galleryUrls,
+                  gallery: editingProject?.gallery || [],
                   brandLogos: brandLogosData
                 }
                 console.log('Processed project data:', projectData)
@@ -1004,7 +1013,7 @@ export default function AdminDashboard() {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
                       <label htmlFor="completionDate" className="block text-sm font-light text-gray-700 mb-2">
-                        完工日期
+                        預計完工日期
                       </label>
                       <input
                         type="text"
@@ -1029,10 +1038,10 @@ export default function AdminDashboard() {
                         className="w-full px-3 py-2 border border-gray-300 rounded-sm focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent font-light text-gray-900 bg-white"
                       >
                         <option value="">請選擇類別</option>
-                        <option value="住宅">住宅</option>
-                        <option value="商業">商業</option>
-                        <option value="工業">工業</option>
-                        <option value="公共建設">公共建設</option>
+                        <option value="透天">透天</option>
+                        <option value="華廈">華廈</option>
+                        <option value="電梯大樓">電梯大樓</option>
+                        
                       </select>
                     </div>
                   </div>
@@ -1094,8 +1103,20 @@ export default function AdminDashboard() {
                         className="w-full px-3 py-2 border border-gray-300 rounded-sm focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent font-light text-gray-900 bg-white"
                       />
                       {editingProject?.image && (
-                        <div className="text-sm text-gray-600 font-light">
-                          目前圖片: <span className="font-normal">{editingProject.image}</span>
+                        <div className="mt-2">
+                          <div className="text-sm text-gray-600 font-light mb-2">目前圖片:</div>
+                          <div className="relative w-32 h-24 bg-gray-100 rounded-lg overflow-hidden border">
+                            <Image
+                              src={editingProject.image}
+                              alt="項目圖片"
+                              fill
+                              className="object-cover"
+                              onError={(e) => {
+                                const target = e.target as HTMLImageElement
+                                target.src = '/api/placeholder/800/600'
+                              }}
+                            />
+                          </div>
                         </div>
                       )}
                       <div className="text-xs text-gray-500 font-light">
@@ -1105,46 +1126,79 @@ export default function AdminDashboard() {
                   </div>
 
                   <div>
-                    <label htmlFor="gallery" className="block text-sm font-light text-gray-700 mb-2">
-                      作品圖片集 (可選擇多張)
+                    <label htmlFor="brandLogos" className="block text-sm font-light text-gray-700 mb-2">
+                      合作品牌 Logo
                     </label>
-                    <div className="space-y-2">
+                    <div className="space-y-4">
                       <input
                         type="file"
-                        id="gallery"
-                        name="gallery"
+                        id="brandLogos"
+                        name="brandLogos"
                         accept="image/*"
                         multiple
                         className="w-full px-3 py-2 border border-gray-300 rounded-sm focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent font-light text-gray-900 bg-white"
                       />
-                      {editingProject?.gallery && editingProject.gallery.length > 0 && (
-                        <div className="text-sm text-gray-600 font-light">
-                          目前圖片數量: <span className="font-normal">{editingProject.gallery.length} 張</span>
+
+                      {/* Current Brand Logos with Delete Buttons */}
+                      {editingProject?.brandLogos && editingProject.brandLogos.length > 0 && (
+                        <div className="border border-gray-200 rounded-lg p-4">
+                          <div className="text-sm text-gray-600 font-light mb-3">
+                            目前品牌數量: <span className="font-normal">{editingProject.brandLogos.length} 個</span>
+                          </div>
+                          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+                            {editingProject.brandLogos.map((logo, index) => (
+                              <div key={index} className="relative group bg-white border border-gray-200 rounded-lg p-3 text-center">
+                                <div className="aspect-square bg-gray-100 rounded-lg mb-2 flex items-center justify-center overflow-hidden">
+                                  {logo.logoUrl ? (
+                                    <Image
+                                      src={logo.logoUrl}
+                                      alt={logo.name}
+                                      width={80}
+                                      height={80}
+                                      className="object-contain"
+                                      onError={(e) => {
+                                        const target = e.target as HTMLImageElement;
+                                        target.style.display = 'none';
+                                        const parent = target.parentElement;
+                                        if (parent) {
+                                          parent.innerHTML = `<div class="text-xs text-gray-500 p-2">${logo.name}</div>`;
+                                        }
+                                      }}
+                                    />
+                                  ) : (
+                                    <div className="text-xs text-gray-500 p-2">{logo.name}</div>
+                                  )}
+                                </div>
+                                <div className="text-xs text-gray-900 font-medium truncate">{logo.name}</div>
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    if (editingProject) {
+                                      const updatedLogos = editingProject.brandLogos?.filter((_, i) => i !== index) || [];
+                                      setEditingProject({
+                                        ...editingProject,
+                                        brandLogos: updatedLogos
+                                      });
+                                    }
+                                  }}
+                                  className="absolute top-1 right-1 opacity-0 group-hover:opacity-100 transition-opacity bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs hover:bg-red-600"
+                                  title="刪除此品牌 Logo"
+                                >
+                                  ×
+                                </button>
+                              </div>
+                            ))}
+                          </div>
                         </div>
                       )}
+
                       <div className="text-xs text-gray-500 font-light">
-                        支援格式: JPG, PNG, WebP | 可同時選擇多張圖片
+                        支援格式: JPG, PNG, SVG, WebP | 可同時選擇多張品牌 Logo
                       </div>
                     </div>
                   </div>
 
 
-                  <div>
-                    <label htmlFor="brandNames" className="block text-sm font-light text-gray-700 mb-2">
-                      品牌名稱與類別 (每行一個，格式：品牌名稱,類別)
-                    </label>
-                    <textarea
-                      id="brandNames"
-                      name="brandNames"
-                      rows={4}
-                      placeholder="台灣水泥,水泥製造&#10;潤泰建材,綜合建材&#10;三商建材,建築材料"
-                      defaultValue={editingProject?.brandLogos?.map(logo => `${logo.name},${logo.category}`).join('\n') || ''}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-sm focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent font-light text-gray-900 bg-white"
-                    />
-                    <div className="text-xs text-gray-500 font-light">
-                      每行輸入一個品牌，格式：品牌名稱,類別 (例如：台灣水泥,水泥製造)
-                    </div>
-                  </div>
                 </div>
 
                 <div className="flex justify-end space-x-4 mt-8">
