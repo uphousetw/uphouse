@@ -235,12 +235,12 @@ export default function AdminDashboard() {
       if (editingProject) {
         // Update existing project
         console.log('Updating project with ID:', editingProject.id)
-        const response = await fetch('/api/projects', {
+        const response = await fetch(`/api/projects/${editingProject.id}`, {
           method: 'PUT',
           headers: {
             'Content-Type': 'application/json',
           },
-          body: JSON.stringify({ ...projectData, id: editingProject.id }),
+          body: JSON.stringify(projectData),
         })
 
         console.log('Update response status:', response.status)
@@ -891,28 +891,35 @@ export default function AdminDashboard() {
                 // Handle actual file upload
                 if (imageFile && imageFile.size > 0) {
                   try {
+                    console.log('Starting image upload for file:', imageFile.name)
                     // Create FormData for file upload
                     const uploadFormData = new FormData()
                     uploadFormData.append('file', imageFile)
                     uploadFormData.append('folder', 'projects')
-                    
+
                     // Upload file to server
                     const uploadResponse = await fetch('/api/upload', {
                       method: 'POST',
                       body: uploadFormData
                     })
-                    
+
+                    console.log('Upload response status:', uploadResponse.status)
+
                     if (uploadResponse.ok) {
                       const uploadResult = await uploadResponse.json()
                       imageUrl = uploadResult.url
                       console.log('Image uploaded successfully:', imageUrl)
                     } else {
-                      console.error('Image upload failed')
-                      // Keep existing image if upload fails
+                      const errorText = await uploadResponse.text()
+                      console.error('Image upload failed:', uploadResponse.status, errorText)
+                      alert(`圖片上傳失敗: ${errorText}`)
+                      return // Stop form submission if upload fails
                     }
                   } catch (error) {
                     console.error('Error uploading image:', error)
-                    // Keep existing image if upload fails
+                    const errorMessage = error instanceof Error ? error.message : 'Unknown error'
+                    alert(`圖片上傳錯誤: ${errorMessage}`)
+                    return // Stop form submission if upload fails
                   }
                 }
                 
