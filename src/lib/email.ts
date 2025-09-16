@@ -6,8 +6,6 @@ interface ContactSubmission {
   email: string
   phone?: string
   projectType?: string
-  budget?: string
-  message: string
   submittedAt: string
   status: 'new' | 'read' | 'replied'
 }
@@ -63,14 +61,8 @@ export async function sendContactNotification(submission: ContactSubmission) {
               ` : ''}
               ${submission.projectType ? `
               <tr>
-                <td style="padding: 8px 0; font-weight: bold; color: #6c757d;">項目類型：</td>
+                <td style="padding: 8px 0; font-weight: bold; color: #6c757d;">建案名稱：</td>
                 <td style="padding: 8px 0; color: #495057;">${submission.projectType}</td>
-              </tr>
-              ` : ''}
-              ${submission.budget ? `
-              <tr>
-                <td style="padding: 8px 0; font-weight: bold; color: #6c757d;">預算範圍：</td>
-                <td style="padding: 8px 0; color: #495057;">${submission.budget}</td>
               </tr>
               ` : ''}
               <tr>
@@ -79,12 +71,6 @@ export async function sendContactNotification(submission: ContactSubmission) {
               </tr>
             </table>
             
-            <div style="margin-top: 20px;">
-              <h3 style="color: #495057; font-size: 16px; margin-bottom: 10px;">詳細需求</h3>
-              <div style="background: white; padding: 15px; border-radius: 5px; border-left: 4px solid #007bff;">
-                ${submission.message.replace(/\n/g, '<br>')}
-              </div>
-            </div>
             
             <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #dee2e6;">
               <a href="${process.env.COMPANY_WEBSITE || 'http://localhost:3003'}/admin" 
@@ -137,14 +123,8 @@ export async function sendContactConfirmation(submission: ContactSubmission) {
               <table style="width: 100%; border-collapse: collapse;">
                 ${submission.projectType ? `
                 <tr>
-                  <td style="padding: 5px 0; font-weight: bold; color: #6c757d; width: 100px;">項目類型：</td>
+                  <td style="padding: 5px 0; font-weight: bold; color: #6c757d; width: 100px;">建案名稱：</td>
                   <td style="padding: 5px 0; color: #495057;">${submission.projectType}</td>
-                </tr>
-                ` : ''}
-                ${submission.budget ? `
-                <tr>
-                  <td style="padding: 5px 0; font-weight: bold; color: #6c757d;">預算範圍：</td>
-                  <td style="padding: 5px 0; color: #495057;">${submission.budget}</td>
                 </tr>
                 ` : ''}
                 <tr>
@@ -165,7 +145,7 @@ export async function sendContactConfirmation(submission: ContactSubmission) {
             
             <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #dee2e6; text-align: center;">
               <p style="color: #6c757d; margin: 0; font-size: 14px;">
-                如有緊急事項，請直接撥打我們的服務專線：<strong>(02) 2xxx-xxxx</strong>
+                如有緊急事項，請直接撥打我們的服務專線：<strong>(03) 777-5355</strong>
               </p>
               <p style="color: #6c757d; margin: 10px 0 0 0; font-size: 14px;">
                 ${process.env.COMPANY_NAME || '向上建設'} 團隊敬上

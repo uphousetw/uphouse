@@ -10,6 +10,7 @@ export interface Project {
   area?: string
   features?: string[]
   gallery?: string[]
+  brandLogos?: { name: string; category: string; logoUrl?: string }[]
   createdAt: string
   updatedAt: string
 }
@@ -28,6 +29,12 @@ export const projects: Project[] = [
     area: "280坪",
     features: ["大面積玻璃窗", "開放式格局", "進口石材", "實木地板", "智慧家居系統"],
     gallery: ["/api/placeholder/800/600", "/api/placeholder/800/600", "/api/placeholder/800/600"],
+    brandLogos: [
+      { name: "台灣水泥", category: "水泥製造" },
+      { name: "潤泰建材", category: "綜合建材" },
+      { name: "三商建材", category: "建築材料" },
+      { name: "國產建材實業", category: "建材實業" }
+    ],
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString()
   },
@@ -43,6 +50,12 @@ export const projects: Project[] = [
     area: "120坪",
     features: ["多功能空間設計", "高效收納系統", "現代簡約風格", "優質建材", "節能環保設計"],
     gallery: ["/api/placeholder/800/600", "/api/placeholder/800/600", "/api/placeholder/800/600"],
+    brandLogos: [
+      { name: "和成建材", category: "衛浴設備" },
+      { name: "台塑建材", category: "塑膠建材" },
+      { name: "潤泰建材", category: "綜合建材" },
+      { name: "國產建材實業", category: "建材實業" }
+    ],
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString()
   }

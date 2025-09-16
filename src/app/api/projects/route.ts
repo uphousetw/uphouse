@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { projects, type Project } from '@/lib/data/projects'
 
-// GET /api/projects - Get all projects
+// GET /api/projects - Get all projects with caching
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url)
   const page = parseInt(searchParams.get('page') || '1')
@@ -18,7 +18,7 @@ export async function GET(request: NextRequest) {
   const endIndex = startIndex + limit
   const paginatedProjects = filteredProjects.slice(startIndex, endIndex)
 
-  return NextResponse.json({
+  const response = NextResponse.json({
     projects: paginatedProjects,
     pagination: {
       currentPage: page,
@@ -28,6 +28,12 @@ export async function GET(request: NextRequest) {
       hasPrev: page > 1
     }
   })
+
+  // Add caching headers
+  response.headers.set('Cache-Control', 'public, s-maxage=300, stale-while-revalidate=600')
+  response.headers.set('CDN-Cache-Control', 'public, s-maxage=600')
+  
+  return response
 }
 
 // POST /api/projects - Create new project (Admin only)
@@ -47,6 +53,7 @@ export async function POST(request: NextRequest) {
       area: body.area,
       features: body.features || [],
       gallery: body.gallery || [],
+      brandLogos: body.brandLogos || [],
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString()
     }

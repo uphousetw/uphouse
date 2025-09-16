@@ -1,6 +1,7 @@
 'use client'
 
 import Link from 'next/link'
+import Image from 'next/image'
 import { useState } from 'react'
 import React from 'react'
 
@@ -30,7 +31,7 @@ export default function Header() {
           <div className="flex-shrink-0">
             <Link href="/" className="flex items-center group">
               <div className="flex items-center">
-                <img src="/images/icons/icon_uphouse.jpg" alt="向上建設" className="w-10 h-10 rounded-lg object-cover mr-4 shadow-lg group-hover:shadow-xl transition-all duration-300" />
+                <Image src="/images/icons/icon_uphouse.jpg" alt="向上建設" width={40} height={40} className="rounded-lg object-cover mr-4 shadow-lg group-hover:shadow-xl transition-all duration-300" />
                 <div className="text-3xl font-light text-primary tracking-wide group-hover:text-accent transition-colors duration-300">
                   向上建設
                 </div>

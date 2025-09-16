@@ -1,17 +1,33 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo, Suspense } from 'react'
 import Link from "next/link";
-import HeroSlider from '@/components/HeroSlider';
+import dynamic from 'next/dynamic'
+
+// Lazy load components that are not immediately visible
+const HeroSlider = dynamic(() => import('@/components/HeroSlider'), {
+  loading: () => (
+    <div className="w-full h-96 bg-gray-200 animate-pulse rounded-lg flex items-center justify-center">
+      <div className="text-gray-400">載入中...</div>
+    </div>
+  ),
+  ssr: false
+})
 
 export default function Home() {
   const [heroImages, setHeroImages] = useState<string[]>([])
   const [loading, setLoading] = useState(true)
 
-  useEffect(() => {
-    const loadHeroImages = async () => {
+  // Memoize the API call to prevent unnecessary re-fetching
+  const loadHeroImages = useMemo(() => {
+    return async () => {
       try {
-        const response = await fetch('/api/hero-images')
+        const response = await fetch('/api/hero-images', {
+          // Add caching headers
+          headers: {
+            'Cache-Control': 'public, max-age=300, stale-while-revalidate=600'
+          }
+        })
         if (response.ok) {
           const data = await response.json()
           setHeroImages(data.images || [])
@@ -22,9 +38,11 @@ export default function Home() {
         setLoading(false)
       }
     }
-
-    loadHeroImages()
   }, [])
+
+  useEffect(() => {
+    loadHeroImages()
+  }, [loadHeroImages])
 
   return (
     <div style={{backgroundColor: '#F9F1EC'}}>
@@ -41,8 +59,7 @@ export default function Home() {
               </h1>
               
               <p className="text-xl lg:text-2xl text-gray-600 font-light leading-relaxed max-w-xl">
-                我們簡化建築與設計的每一個步驟，運用現代技術、專業支援，
-                提供完全透明的建設服務。
+                苗栗高鐵特區 質感美學住宅
               </p>
               
               <div className="flex flex-col sm:flex-row gap-4">
@@ -84,61 +101,6 @@ export default function Home() {
               <div className="absolute -bottom-8 -left-8 w-32 h-32 bg-blue-50 rounded-full opacity-40 -z-10"></div>
             </div>
             
-          </div>
-        </div>
-      </section>
-
-      {/* Services Section */}
-      <section className="py-20" style={{backgroundColor: '#F9F1EC'}}>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl lg:text-5xl font-light text-gray-900 mb-6">
-              專業建築服務
-            </h2>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              從設計規劃到完工交付，我們提供全方位的建築服務
-            </p>
-          </div>
-
-          <div className="grid md:grid-cols-3 gap-8">
-            {/* 住宅設計 */}
-            <div className="group text-center p-8 rounded-2xl border border-stone-100 hover:shadow-lg transition-all duration-300" style={{backgroundColor: 'rgba(231, 229, 228, 0.3)'}}>
-              <div className="w-20 h-20 mx-auto mb-8">
-                <div className="w-20 h-20 bg-gradient-to-br from-stone-100 to-stone-200 rounded-2xl flex items-center justify-center group-hover:from-stone-600 group-hover:to-stone-700 transition-all duration-300 shadow-sm">
-                  <svg className="w-10 h-10 text-stone-600 group-hover:text-white transition-colors duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-                  </svg>
-                </div>
-              </div>
-              <h3 className="text-xl font-medium text-stone-800 mb-4 group-hover:text-stone-900 transition-colors duration-300">住宅設計</h3>
-              <p className="text-stone-600 leading-relaxed">量身訂做的住宅設計方案，結合美學與實用性</p>
-            </div>
-
-            {/* 空間規劃 */}
-            <div className="group text-center p-8 rounded-2xl border border-stone-100 hover:shadow-lg transition-all duration-300" style={{backgroundColor: 'rgba(231, 229, 228, 0.3)'}}>
-              <div className="w-20 h-20 mx-auto mb-8">
-                <div className="w-20 h-20 bg-gradient-to-br from-stone-100 to-stone-200 rounded-2xl flex items-center justify-center group-hover:from-stone-600 group-hover:to-stone-700 transition-all duration-300 shadow-sm">
-                  <svg className="w-10 h-10 text-stone-600 group-hover:text-white transition-colors duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 5a1 1 0 011-1h14a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM4 13a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H5a1 1 0 01-1-1v-6zM16 13a1 1 0 011-1h2a1 1 0 011 1v6a1 1 0 01-1 1h-2a1 1 0 01-1-1v-6z" />
-                  </svg>
-                </div>
-              </div>
-              <h3 className="text-xl font-medium text-stone-800 mb-4 group-hover:text-stone-900 transition-colors duration-300">空間規劃</h3>
-              <p className="text-stone-600 leading-relaxed">精確的空間配置與動線設計，最大化使用效益</p>
-            </div>
-
-            {/* 專業施工 */}
-            <div className="group text-center p-8 rounded-2xl border border-stone-100 hover:shadow-lg transition-all duration-300" style={{backgroundColor: 'rgba(231, 229, 228, 0.3)'}}>
-              <div className="w-20 h-20 mx-auto mb-8">
-                <div className="w-20 h-20 bg-gradient-to-br from-stone-100 to-stone-200 rounded-2xl flex items-center justify-center group-hover:from-stone-600 group-hover:to-stone-700 transition-all duration-300 shadow-sm">
-                  <svg className="w-10 h-10 text-stone-600 group-hover:text-white transition-colors duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
-                  </svg>
-                </div>
-              </div>
-              <h3 className="text-xl font-medium text-stone-800 mb-4 group-hover:text-stone-900 transition-colors duration-300">專業施工</h3>
-              <p className="text-stone-600 leading-relaxed">嚴格品質控制與專業施工管理，確保最高標準</p>
-            </div>
           </div>
         </div>
       </section>
@@ -200,6 +162,62 @@ export default function Home() {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
               </svg>
             </Link>
+          </div>
+        </div>
+      </section>
+
+      {/* Services Section */}
+      <section className="py-20" style={{backgroundColor: '#F9F1EC'}}>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl lg:text-5xl font-light text-gray-900 mb-6">
+              幸福不必遠求
+            </h2>
+            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+              家，即是世界上最幸福的地方<br />
+              我們致力於創造各具風格的建築作品，以苗栗為起點，讓居住的每個空間都充滿著生命力和獨特性!
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-3 gap-8">
+            {/* 住宅設計 */}
+            <div className="group text-center p-8 rounded-2xl border border-stone-100 hover:shadow-lg transition-all duration-300" style={{backgroundColor: 'rgba(231, 229, 228, 0.3)'}}>
+              <div className="w-20 h-20 mx-auto mb-8">
+                <div className="w-20 h-20 bg-gradient-to-br from-stone-100 to-stone-200 rounded-2xl flex items-center justify-center group-hover:from-stone-600 group-hover:to-stone-700 transition-all duration-300 shadow-sm">
+                  <svg className="w-10 h-10 text-stone-600 group-hover:text-white transition-colors duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                  </svg>
+                </div>
+              </div>
+              <h3 className="text-xl font-medium text-stone-800 mb-4 group-hover:text-stone-900 transition-colors duration-300">住宅設計</h3>
+              <p className="text-stone-600 leading-relaxed">量身訂做的住宅設計方案，結合美學與實用性</p>
+            </div>
+
+            {/* 空間規劃 */}
+            <div className="group text-center p-8 rounded-2xl border border-stone-100 hover:shadow-lg transition-all duration-300" style={{backgroundColor: 'rgba(231, 229, 228, 0.3)'}}>
+              <div className="w-20 h-20 mx-auto mb-8">
+                <div className="w-20 h-20 bg-gradient-to-br from-stone-100 to-stone-200 rounded-2xl flex items-center justify-center group-hover:from-stone-600 group-hover:to-stone-700 transition-all duration-300 shadow-sm">
+                  <svg className="w-10 h-10 text-stone-600 group-hover:text-white transition-colors duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 5a1 1 0 011-1h14a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM4 13a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H5a1 1 0 01-1-1v-6zM16 13a1 1 0 011-1h2a1 1 0 011 1v6a1 1 0 01-1 1h-2a1 1 0 01-1-1v-6z" />
+                  </svg>
+                </div>
+              </div>
+              <h3 className="text-xl font-medium text-stone-800 mb-4 group-hover:text-stone-900 transition-colors duration-300">空間規劃</h3>
+              <p className="text-stone-600 leading-relaxed">精確的空間配置與動線設計，最大化使用效益</p>
+            </div>
+
+            {/* 專業施工 */}
+            <div className="group text-center p-8 rounded-2xl border border-stone-100 hover:shadow-lg transition-all duration-300" style={{backgroundColor: 'rgba(231, 229, 228, 0.3)'}}>
+              <div className="w-20 h-20 mx-auto mb-8">
+                <div className="w-20 h-20 bg-gradient-to-br from-stone-100 to-stone-200 rounded-2xl flex items-center justify-center group-hover:from-stone-600 group-hover:to-stone-700 transition-all duration-300 shadow-sm">
+                  <svg className="w-10 h-10 text-stone-600 group-hover:text-white transition-colors duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
+                  </svg>
+                </div>
+              </div>
+              <h3 className="text-xl font-medium text-stone-800 mb-4 group-hover:text-stone-900 transition-colors duration-300">專業施工</h3>
+              <p className="text-stone-600 leading-relaxed">嚴格品質控制與專業施工管理，確保最高標準</p>
+            </div>
           </div>
         </div>
       </section>

@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import Image from 'next/image'
 
 export default function Footer() {
   return (
@@ -11,10 +12,10 @@ export default function Footer() {
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8">
           {/* Brand */}
           <div className="flex items-center space-x-4 mb-6 md:mb-0">
-            <img src="/images/icons/icon_uphouse.jpg" alt="向上建設" className="w-10 h-10 rounded-lg object-cover shadow-sm" />
+            <Image src="/images/icons/icon_uphouse.jpg" alt="向上建設" width={40} height={40} className="rounded-lg object-cover shadow-sm" />
             <div className="text-2xl font-light text-stone-800 tracking-wide">向上建設</div>
             <div className="hidden sm:block w-px h-7 bg-stone-200 mx-4"></div>
-            <div className="hidden sm:block text-base text-stone-600 font-light">Building Excellence</div>
+            <div className="hidden sm:block text-base text-stone-600 font-light">Uphouse</div>
           </div>
 
           {/* Navigation Links */}
@@ -44,10 +45,6 @@ export default function Footer() {
             <p className="text-stone-500 font-light text-sm tracking-wide">
               © 2024 向上建設
             </p>
-            <div className="hidden md:flex items-center space-x-2">
-              <div className="w-1.5 h-1.5 bg-stone-400 rounded-full"></div>
-              <span className="text-stone-400 font-light text-sm">專業建築設計</span>
-            </div>
           </div>
 
           {/* Contact Info - Minimal */}
@@ -56,13 +53,13 @@ export default function Footer() {
               <div className="w-4 h-4 rounded-full bg-stone-200 flex items-center justify-center">
                 <div className="w-1.5 h-1.5 bg-stone-500 rounded-full"></div>
               </div>
-              <span>info@uphouse.com.tw</span>
+              <span>info@uphousetw.com</span>
             </div>
             <div className="hidden sm:flex items-center space-x-2">
               <div className="w-4 h-4 rounded-full bg-stone-200 flex items-center justify-center">
                 <div className="w-1.5 h-1.5 bg-stone-500 rounded-full"></div>
               </div>
-              <span>(02) 2xxx-xxxx</span>
+              <span>(03) 777-5355</span>
             </div>
           </div>
         </div>

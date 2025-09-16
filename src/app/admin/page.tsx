@@ -1,7 +1,8 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import Link from 'next/link'
+import Image from 'next/image'
 import { useRouter } from 'next/navigation'
 
 interface ContactSubmission {
@@ -28,6 +29,7 @@ interface Project {
   area?: string
   features?: string[]
   gallery?: string[]
+  brandLogos?: { name: string; category: string; logoUrl?: string }[]
   createdAt?: string
   updatedAt?: string
 }
@@ -50,7 +52,7 @@ export default function AdminDashboard() {
 
   useEffect(() => {
     checkAuthentication()
-  }, [])
+  }, [checkAuthentication])
 
   useEffect(() => {
     if (isAuthenticated) {
@@ -58,11 +60,11 @@ export default function AdminDashboard() {
     }
   }, [isAuthenticated])
 
-  const checkAuthentication = async () => {
+  const checkAuthentication = useCallback(async () => {
     try {
       const response = await fetch('/api/admin/status')
       const data = await response.json()
-      
+
       if (data.authenticated) {
         setIsAuthenticated(true)
       } else {
@@ -74,47 +76,53 @@ export default function AdminDashboard() {
     } finally {
       setAuthLoading(false)
     }
-  }
+  }, [router])
 
   const loadData = async () => {
     try {
       setLoading(true)
       
-      // Load contact submissions
-      console.log('Loading contact submissions...')
-      const contactResponse = await fetch('/api/contact')
-      console.log('Contact response status:', contactResponse.status)
+      // Load all data in parallel for better performance
+      const [contactResponse, projectsResponse, heroResponse] = await Promise.all([
+        fetch('/api/contact', {
+          headers: { 'Cache-Control': 'public, max-age=60, stale-while-revalidate=120' }
+        }),
+        fetch('/api/projects', {
+          headers: { 'Cache-Control': 'public, max-age=300, stale-while-revalidate=600' }
+        }),
+        fetch('/api/hero-images', {
+          headers: { 'Cache-Control': 'public, max-age=600, stale-while-revalidate=1200' }
+        })
+      ])
+
+      // Process responses in parallel
+      const dataPromises = []
+      
       if (contactResponse.ok) {
-        const contactData = await contactResponse.json()
-        console.log('Contact data received:', contactData)
-        setContactSubmissions(contactData.submissions || [])
-      } else {
-        console.error('Failed to load contacts:', contactResponse.statusText)
+        dataPromises.push(
+          contactResponse.json().then(data => 
+            setContactSubmissions(data.submissions || [])
+          )
+        )
       }
 
-      // Load projects
-      console.log('Loading projects...')
-      const projectsResponse = await fetch('/api/projects')
-      console.log('Projects response status:', projectsResponse.status)
       if (projectsResponse.ok) {
-        const projectsData = await projectsResponse.json()
-        console.log('Projects data received:', projectsData)
-        setProjects(projectsData.projects || [])
-      } else {
-        console.error('Failed to load projects:', projectsResponse.statusText)
+        dataPromises.push(
+          projectsResponse.json().then(data => 
+            setProjects(data.projects || [])
+          )
+        )
       }
 
-      // Load hero images
-      console.log('Loading hero images...')
-      const heroResponse = await fetch('/api/hero-images')
-      console.log('Hero images response status:', heroResponse.status)
       if (heroResponse.ok) {
-        const heroData = await heroResponse.json()
-        console.log('Hero images data received:', heroData)
-        setHeroImages(heroData.images || [])
-      } else {
-        console.error('Failed to load hero images:', heroResponse.statusText)
+        dataPromises.push(
+          heroResponse.json().then(data => 
+            setHeroImages(data.images || [])
+          )
+        )
       }
+
+      await Promise.all(dataPromises)
     } catch (error) {
       console.error('Failed to load data:', error)
     } finally {
@@ -371,7 +379,7 @@ export default function AdminDashboard() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center">
-              <img src="/images/icons/icon_uphouse.jpg" alt="向上建設" className="w-8 h-8 rounded-lg object-cover mr-3 shadow-lg" />
+              <Image src="/images/icons/icon_uphouse.jpg" alt="向上建設" width={32} height={32} className="rounded-lg object-cover mr-3 shadow-lg" />
               <Link href="/" className="text-xl font-light text-gray-900 tracking-wide">
                 向上建設
               </Link>
@@ -468,7 +476,7 @@ export default function AdminDashboard() {
               >
                 <div className="flex items-center">
                   <div className="flex-shrink-0">
-                    <img src="/images/icons/icon_uphouse.jpg" alt="作品項目" className="w-12 h-12 rounded-xl object-cover shadow-lg" />
+                    <Image src="/images/icons/icon_uphouse.jpg" alt="作品項目" width={48} height={48} className="rounded-xl object-cover shadow-lg" />
                   </div>
                   <div className="ml-4">
                     <p className="text-2xl font-light text-gray-900">{projects.length}</p>
@@ -872,6 +880,7 @@ export default function AdminDashboard() {
                 
                 let imageUrl = editingProject?.image || '/api/placeholder/800/600'
                 let galleryUrls = editingProject?.gallery || []
+                let brandLogosData = editingProject?.brandLogos || []
                 
                 // Handle actual file upload
                 if (imageFile && imageFile.size > 0) {
@@ -907,6 +916,28 @@ export default function AdminDashboard() {
                     file.size > 0 ? `/uploads/gallery/${Date.now()}_${file.name}` : ''
                   ).filter(url => url)
                 }
+
+                // Handle brand names (simplified)
+                const brandNamesText = formData.get('brandNames') as string
+                if (brandNamesText && brandNamesText.trim()) {
+                  const brandLines = brandNamesText.split('\n')
+                    .map(line => line.trim())
+                    .filter(line => line.length > 0)
+                  
+                  brandLogosData = brandLines.map((line, index) => {
+                    const parts = line.split(',')
+                    const name = parts[0] ? parts[0].trim() : `品牌 ${index + 1}`
+                    const category = parts[1] ? parts[1].trim() : '建材'
+                    
+                    return {
+                      name,
+                      category
+                    }
+                  })
+                } else {
+                  // Keep existing brandLogos if no new data provided
+                  brandLogosData = editingProject?.brandLogos || []
+                }
                 
                 const projectData = {
                   title: formData.get('title') as string || '',
@@ -920,7 +951,8 @@ export default function AdminDashboard() {
                     (formData.get('features') as string).split(',').map(f => f.trim()).filter(f => f) : 
                     [],
                   image: imageUrl,
-                  gallery: galleryUrls
+                  gallery: galleryUrls,
+                  brandLogos: brandLogosData
                 }
                 console.log('Processed project data:', projectData)
                 handleSaveProject(projectData)
@@ -1091,6 +1123,24 @@ export default function AdminDashboard() {
                       <div className="text-xs text-gray-500 font-light">
                         支援格式: JPG, PNG, WebP | 可同時選擇多張圖片
                       </div>
+                    </div>
+                  </div>
+
+
+                  <div>
+                    <label htmlFor="brandNames" className="block text-sm font-light text-gray-700 mb-2">
+                      品牌名稱與類別 (每行一個，格式：品牌名稱,類別)
+                    </label>
+                    <textarea
+                      id="brandNames"
+                      name="brandNames"
+                      rows={4}
+                      placeholder="台灣水泥,水泥製造&#10;潤泰建材,綜合建材&#10;三商建材,建築材料"
+                      defaultValue={editingProject?.brandLogos?.map(logo => `${logo.name},${logo.category}`).join('\n') || ''}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-sm focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent font-light text-gray-900 bg-white"
+                    />
+                    <div className="text-xs text-gray-500 font-light">
+                      每行輸入一個品牌，格式：品牌名稱,類別 (例如：台灣水泥,水泥製造)
                     </div>
                   </div>
                 </div>

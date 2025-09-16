@@ -38,7 +38,7 @@ export default function AdminLogin() {
         const errorData = await response.json()
         setError(errorData.message || '登入失敗，請檢查帳號密碼')
       }
-    } catch (error) {
+    } catch {
       setError('登入失敗，請稍後再試')
     } finally {
       setLoading(false)

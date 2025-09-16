@@ -7,9 +7,7 @@ export default function Contact() {
     name: '',
     email: '',
     phone: '',
-    projectType: '',
-    budget: '',
-    message: ''
+    projectType: ''
   })
 
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -46,9 +44,7 @@ export default function Contact() {
         name: '',
         email: '',
         phone: '',
-        projectType: '',
-        budget: '',
-        message: ''
+        projectType: ''
       })
     } catch (error) {
       console.error('Form submission error:', error)
@@ -94,10 +90,6 @@ export default function Contact() {
               聯絡我們
             </h1>
             <div className="h-1 w-16 bg-gray-900 mx-auto mb-8"></div>
-            <p className="text-lg text-gray-600 font-light max-w-2xl mx-auto leading-relaxed">
-              讓我們一起討論您的建築設計需求，
-              為您打造理想的居住空間。
-            </p>
           </div>
         </div>
       </section>
@@ -129,10 +121,7 @@ export default function Contact() {
                       電話
                     </h3>
                     <p className="text-gray-600 font-light">
-                      (02) 2xxx-xxxx
-                    </p>
-                    <p className="text-gray-500 font-light text-sm mt-1">
-                      週一至週五 9:00-18:00
+                      (03) 777-5355
                     </p>
                   </div>
                 </div>
@@ -148,10 +137,7 @@ export default function Contact() {
                       電子信箱
                     </h3>
                     <p className="text-gray-600 font-light">
-                      info@uphouse.com.tw
-                    </p>
-                    <p className="text-gray-500 font-light text-sm mt-1">
-                      24小時內回覆
+                      info@uphousetw.com
                     </p>
                   </div>
                 </div>
@@ -168,10 +154,7 @@ export default function Contact() {
                       辦公地址
                     </h3>
                     <p className="text-gray-600 font-light">
-                      台北市大安區 xxx路 xxx號 x樓
-                    </p>
-                    <p className="text-gray-500 font-light text-sm mt-1">
-                      近捷運xxx站
+                      苗栗縣竹南鎮康德街71號
                     </p>
                   </div>
                 </div>
@@ -205,12 +188,13 @@ export default function Contact() {
 
                   <div>
                     <label htmlFor="phone" className="block text-sm font-light text-gray-700 mb-2 tracking-wide">
-                      電話
+                      電話 *
                     </label>
                     <input
                       type="tel"
                       id="phone"
                       name="phone"
+                      required
                       value={formData.phone}
                       onChange={handleInputChange}
                       className="w-full px-4 py-3 border border-gray-300 focus:ring-1 focus:ring-gray-900 focus:border-gray-900 font-light text-gray-900 placeholder-gray-500"
@@ -221,13 +205,12 @@ export default function Contact() {
 
                 <div>
                   <label htmlFor="email" className="block text-sm font-light text-gray-700 mb-2 tracking-wide">
-                    電子信箱 *
+                    電子信箱
                   </label>
                   <input
                     type="email"
                     id="email"
                     name="email"
-                    required
                     value={formData.email}
                     onChange={handleInputChange}
                     className="w-full px-4 py-3 border border-gray-300 focus:ring-1 focus:ring-gray-900 focus:border-gray-900 font-light text-gray-900 placeholder-gray-500"
@@ -235,61 +218,21 @@ export default function Contact() {
                   />
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div>
-                    <label htmlFor="projectType" className="block text-sm font-light text-gray-700 mb-2 tracking-wide">
-                      項目類型
-                    </label>
-                    <select
-                      id="projectType"
-                      name="projectType"
-                      value={formData.projectType}
-                      onChange={handleInputChange}
-                      className="w-full px-4 py-3 border border-gray-300 focus:ring-1 focus:ring-gray-900 focus:border-gray-900 font-light text-gray-900"
-                    >
-                      <option value="">請選擇項目類型</option>
-                      <option value="新建住宅">新建住宅</option>
-                      <option value="住宅改建">住宅改建</option>
-                      <option value="室內設計">室內設計</option>
-                      <option value="諮詢服務">諮詢服務</option>
-                    </select>
-                  </div>
-
-                  <div>
-                    <label htmlFor="budget" className="block text-sm font-light text-gray-700 mb-2 tracking-wide">
-                      預算範圍
-                    </label>
-                    <select
-                      id="budget"
-                      name="budget"
-                      value={formData.budget}
-                      onChange={handleInputChange}
-                      className="w-full px-4 py-3 border border-gray-300 focus:ring-1 focus:ring-gray-900 focus:border-gray-900 font-light text-gray-900"
-                    >
-                      <option value="">請選擇預算範圍</option>
-                      <option value="500萬以下">500萬以下</option>
-                      <option value="500-1000萬">500-1000萬</option>
-                      <option value="1000-2000萬">1000-2000萬</option>
-                      <option value="2000萬以上">2000萬以上</option>
-                    </select>
-                  </div>
-                </div>
-
                 <div>
-                  <label htmlFor="message" className="block text-sm font-light text-gray-700 mb-2 tracking-wide">
-                    詳細需求 *
+                  <label htmlFor="projectType" className="block text-sm font-light text-gray-700 mb-2 tracking-wide">
+                    建案名稱
                   </label>
-                  <textarea
-                    id="message"
-                    name="message"
-                    required
-                    rows={6}
-                    value={formData.message}
+                  <input
+                    type="text"
+                    id="projectType"
+                    name="projectType"
+                    value={formData.projectType}
                     onChange={handleInputChange}
-                    className="w-full px-4 py-3 border border-gray-300 focus:ring-1 focus:ring-gray-900 focus:border-gray-900 font-light text-gray-900 placeholder-gray-500 resize-none"
-                    placeholder="請詳細描述您的建築設計需求，包括地點、坪數、風格偏好等..."
+                    className="w-full px-4 py-3 border border-gray-300 focus:ring-1 focus:ring-gray-900 focus:border-gray-900 font-light text-gray-900 placeholder-gray-500"
+                    placeholder="請輸入建案名稱"
                   />
                 </div>
+
 
                 <div>
                   <button

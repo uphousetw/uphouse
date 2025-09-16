@@ -1,7 +1,14 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback, useMemo } from 'react'
 import Link from 'next/link'
+import dynamic from 'next/dynamic'
+
+// Lazy load the BrandLogosSection if it's still being used
+const BrandLogosSection = dynamic(() => import('@/components/BrandLogosSection'), {
+  loading: () => <div className="h-32 bg-gray-100 animate-pulse rounded-lg"></div>,
+  ssr: false
+})
 
 interface Project {
   id: number
@@ -26,9 +33,14 @@ export default function Portfolio() {
     loadProjects()
   }, [])
 
-  const loadProjects = async () => {
+  // Memoized and optimized project loading
+  const loadProjects = useCallback(async () => {
     try {
-      const response = await fetch('/api/projects')
+      const response = await fetch('/api/projects', {
+        headers: {
+          'Cache-Control': 'public, max-age=300, stale-while-revalidate=600'
+        }
+      })
       if (response.ok) {
         const data = await response.json()
         setProjects(data.projects || [])
@@ -38,11 +50,18 @@ export default function Portfolio() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [])
+
+  // Memoize pagination calculations
+  const paginationData = useMemo(() => {
+    const totalPages = Math.ceil(projects.length / PROJECTS_PER_PAGE)
+    const startIndex = (currentPage - 1) * PROJECTS_PER_PAGE
+    const currentProjects = projects.slice(startIndex, startIndex + PROJECTS_PER_PAGE)
+    
+    return { totalPages, startIndex, currentProjects }
+  }, [projects, currentPage])
   
-  const totalPages = Math.ceil(projects.length / PROJECTS_PER_PAGE)
-  const startIndex = (currentPage - 1) * PROJECTS_PER_PAGE
-  const currentProjects = projects.slice(startIndex, startIndex + PROJECTS_PER_PAGE)
+  const { totalPages, currentProjects } = paginationData
 
   if (loading) {
     return (
