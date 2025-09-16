@@ -20,7 +20,7 @@ const CONTACTS_FILE = path.join(process.cwd(), 'src/lib/data/contacts.json')
 async function initContactsFile() {
   try {
     await readFile(CONTACTS_FILE)
-  } catch (error) {
+  } catch {
     const initialData = { submissions: [] }
     await writeFile(CONTACTS_FILE, JSON.stringify(initialData, null, 2))
   }
@@ -49,7 +49,7 @@ export async function GET(request: NextRequest, { params }: Props) {
   try {
     const { id } = await params
     const contactSubmissions = await readContacts()
-    const submission = contactSubmissions.find(s => s.id === id)
+    const submission = contactSubmissions.find((s: ContactSubmission) => s.id === id)
 
     if (!submission) {
       return NextResponse.json(
@@ -74,7 +74,7 @@ export async function PATCH(request: NextRequest, { params }: Props) {
     const { id } = await params
     const body = await request.json()
     const contactSubmissions = await readContacts()
-    const submissionIndex = contactSubmissions.findIndex(s => s.id === id)
+    const submissionIndex = contactSubmissions.findIndex((s: ContactSubmission) => s.id === id)
 
     if (submissionIndex === -1) {
       return NextResponse.json(
@@ -115,7 +115,7 @@ export async function DELETE(request: NextRequest, { params }: Props) {
   try {
     const { id } = await params
     const contactSubmissions = await readContacts()
-    const submissionIndex = contactSubmissions.findIndex(s => s.id === id)
+    const submissionIndex = contactSubmissions.findIndex((s: ContactSubmission) => s.id === id)
 
     if (submissionIndex === -1) {
       return NextResponse.json(

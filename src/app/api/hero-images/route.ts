@@ -8,7 +8,7 @@ const HERO_IMAGES_FILE = path.join(process.cwd(), 'src/lib/data/hero-images.json
 async function initHeroImagesFile() {
   try {
     await readFile(HERO_IMAGES_FILE)
-  } catch (error) {
+  } catch {
     // File doesn't exist, create it
     const initialData = { images: [] }
     await writeFile(HERO_IMAGES_FILE, JSON.stringify(initialData, null, 2))

@@ -4,7 +4,7 @@ import { useEffect } from 'react'
 
 declare global {
   interface Window {
-    gtag?: (...args: any[]) => void
+    gtag?: (...args: unknown[]) => void
   }
 }
 
@@ -32,7 +32,8 @@ export default function PerformanceMonitor() {
       new PerformanceObserver((entryList) => {
         for (const entry of entryList.getEntries()) {
           if (entry.entryType === 'first-input') {
-            const fid = entry.processingStart - entry.startTime
+            const fidEntry = entry as PerformanceEntry & { processingStart: number }
+            const fid = fidEntry.processingStart - fidEntry.startTime
             console.log('FID:', fid)
             if (window.gtag) {
               window.gtag('event', 'FID', {
@@ -48,8 +49,9 @@ export default function PerformanceMonitor() {
       let clsValue = 0
       new PerformanceObserver((entryList) => {
         for (const entry of entryList.getEntries()) {
-          if (!entry.hadRecentInput) {
-            clsValue += entry.value
+          const clsEntry = entry as PerformanceEntry & { value: number; hadRecentInput: boolean }
+          if (!clsEntry.hadRecentInput) {
+            clsValue += clsEntry.value
           }
         }
         console.log('CLS:', clsValue)

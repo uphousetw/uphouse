@@ -50,16 +50,6 @@ export default function AdminDashboard() {
   const [showReplyModal, setShowReplyModal] = useState(false)
   const [replyForm, setReplyForm] = useState({ subject: '', message: '' })
 
-  useEffect(() => {
-    checkAuthentication()
-  }, [checkAuthentication])
-
-  useEffect(() => {
-    if (isAuthenticated) {
-      loadData()
-    }
-  }, [isAuthenticated])
-
   const checkAuthentication = useCallback(async () => {
     try {
       const response = await fetch('/api/admin/status')
@@ -77,6 +67,16 @@ export default function AdminDashboard() {
       setAuthLoading(false)
     }
   }, [router])
+
+  useEffect(() => {
+    checkAuthentication()
+  }, [checkAuthentication])
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      loadData()
+    }
+  }, [isAuthenticated])
 
   const loadData = async () => {
     try {
@@ -587,10 +587,11 @@ export default function AdminDashboard() {
                   {heroImages.map((image, index) => (
                     <div key={index} className="relative group">
                       <div className="aspect-video bg-gray-100 rounded-lg overflow-hidden">
-                        <img
+                        <Image
                           src={image}
                           alt={`Hero image ${index + 1}`}
-                          className="w-full h-full object-cover"
+                          fill
+                          className="object-cover"
                           onError={(e) => {
                             const target = e.target as HTMLImageElement
                             target.src = '/images/placeholder.jpg'
@@ -773,10 +774,11 @@ export default function AdminDashboard() {
                 <div key={project.id} className="bg-white rounded-sm shadow-sm overflow-hidden">
                   <div className="h-48 bg-gray-200 relative overflow-hidden">
                     {project.image && project.image !== '/api/placeholder/800/600' ? (
-                      <img 
-                        src={project.image} 
+                      <Image
+                        src={project.image}
                         alt={project.title}
-                        className="w-full h-full object-cover"
+                        fill
+                        className="object-cover"
                         onError={(e) => {
                           const target = e.target as HTMLImageElement;
                           target.style.display = 'none';

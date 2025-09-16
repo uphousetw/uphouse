@@ -2,13 +2,13 @@
 
 import { useState, useEffect, useCallback, useMemo } from 'react'
 import Link from 'next/link'
-import dynamic from 'next/dynamic'
+import Image from 'next/image'
 
-// Lazy load the BrandLogosSection if it's still being used
-const BrandLogosSection = dynamic(() => import('@/components/BrandLogosSection'), {
-  loading: () => <div className="h-32 bg-gray-100 animate-pulse rounded-lg"></div>,
-  ssr: false
-})
+// BrandLogosSection is available if needed in the future
+// const BrandLogosSection = dynamic(() => import('@/components/BrandLogosSection'), {
+//   loading: () => <div className="h-32 bg-gray-100 animate-pulse rounded-lg"></div>,
+//   ssr: false
+// })
 
 interface Project {
   id: number
@@ -28,10 +28,6 @@ export default function Portfolio() {
   const [currentPage, setCurrentPage] = useState(1)
   const [projects, setProjects] = useState<Project[]>([])
   const [loading, setLoading] = useState(true)
-  
-  useEffect(() => {
-    loadProjects()
-  }, [])
 
   // Memoized and optimized project loading
   const loadProjects = useCallback(async () => {
@@ -51,6 +47,10 @@ export default function Portfolio() {
       setLoading(false)
     }
   }, [])
+
+  useEffect(() => {
+    loadProjects()
+  }, [loadProjects])
 
   // Memoize pagination calculations
   const paginationData = useMemo(() => {
@@ -101,10 +101,11 @@ export default function Portfolio() {
                   {/* Project Image */}
                   <div className="relative h-80 bg-gray-200 overflow-hidden">
                     {project.image && project.image !== '/api/placeholder/800/600' ? (
-                      <img 
-                        src={project.image} 
+                      <Image
+                        src={project.image}
                         alt={project.title}
-                        className="w-full h-full object-cover"
+                        fill
+                        className="object-cover"
                         onError={(e) => {
                           const target = e.target as HTMLImageElement;
                           target.style.display = 'none';

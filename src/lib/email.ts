@@ -12,7 +12,7 @@ interface ContactSubmission {
 
 // Create Gmail transporter
 function createTransporter() {
-  return nodemailer.createTransporter({
+  return nodemailer.createTransport({
     service: 'gmail',
     auth: {
       user: process.env.GMAIL_USER,
@@ -91,7 +91,7 @@ export async function sendContactNotification(submission: ContactSubmission) {
     return { success: true, messageId: result.messageId }
   } catch (error) {
     console.error('Failed to send contact notification:', error)
-    return { success: false, error: error.message }
+    return { success: false, error: error instanceof Error ? error.message : 'Unknown error' }
   }
 }
 
@@ -161,7 +161,7 @@ export async function sendContactConfirmation(submission: ContactSubmission) {
     return { success: true, messageId: result.messageId }
   } catch (error) {
     console.error('Failed to send contact confirmation:', error)
-    return { success: false, error: error.message }
+    return { success: false, error: error instanceof Error ? error.message : 'Unknown error' }
   }
 }
 
@@ -201,6 +201,6 @@ export async function sendCustomReply(to: string, subject: string, message: stri
     return { success: true, messageId: result.messageId }
   } catch (error) {
     console.error('Failed to send custom reply:', error)
-    return { success: false, error: error.message }
+    return { success: false, error: error instanceof Error ? error.message : 'Unknown error' }
   }
 }

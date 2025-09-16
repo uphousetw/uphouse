@@ -21,7 +21,7 @@ const CONTACTS_FILE = path.join(process.cwd(), 'src/lib/data/contacts.json')
 async function initContactsFile() {
   try {
     await readFile(CONTACTS_FILE)
-  } catch (error) {
+  } catch {
     // File doesn't exist, create it
     const initialData = { submissions: [] }
     await writeFile(CONTACTS_FILE, JSON.stringify(initialData, null, 2))
@@ -129,11 +129,11 @@ export async function GET(request: NextRequest) {
     let filteredSubmissions = contactSubmissions
 
     if (status) {
-      filteredSubmissions = contactSubmissions.filter(submission => submission.status === status)
+      filteredSubmissions = contactSubmissions.filter((submission: ContactSubmission) => submission.status === status)
     }
 
     // Sort by newest first
-    filteredSubmissions.sort((a, b) => new Date(b.submittedAt).getTime() - new Date(a.submittedAt).getTime())
+    filteredSubmissions.sort((a: ContactSubmission, b: ContactSubmission) => new Date(b.submittedAt).getTime() - new Date(a.submittedAt).getTime())
 
     const startIndex = (page - 1) * limit
     const endIndex = startIndex + limit
@@ -150,9 +150,9 @@ export async function GET(request: NextRequest) {
       },
       stats: {
         total: contactSubmissions.length,
-        new: contactSubmissions.filter(s => s.status === 'new').length,
-        read: contactSubmissions.filter(s => s.status === 'read').length,
-        replied: contactSubmissions.filter(s => s.status === 'replied').length
+        new: contactSubmissions.filter((s: ContactSubmission) => s.status === 'new').length,
+        read: contactSubmissions.filter((s: ContactSubmission) => s.status === 'read').length,
+        replied: contactSubmissions.filter((s: ContactSubmission) => s.status === 'replied').length
       }
     })
   } catch (error) {

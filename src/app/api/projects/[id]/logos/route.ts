@@ -22,7 +22,7 @@ export async function GET(
     const logos = projectLogos[id] || []
     
     return NextResponse.json({ logos })
-  } catch (error) {
+  } catch {
     return NextResponse.json(
       { error: 'Failed to fetch logos' },
       { status: 500 }
@@ -116,7 +116,7 @@ export async function DELETE(
       message: 'Logo removed successfully',
       logos: projectLogos[id]
     })
-  } catch (error) {
+  } catch {
     return NextResponse.json(
       { error: 'Failed to remove logo' },
       { status: 500 }

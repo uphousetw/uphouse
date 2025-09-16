@@ -1,4 +1,5 @@
 import { memo } from 'react'
+import Image from 'next/image'
 
 interface BrandLogo {
   name: string
@@ -25,12 +26,11 @@ const BrandLogosSection = memo(function BrandLogosSection({ brandLogos }: BrandL
             <div key={`${logo.name}-${index}`} className="bg-white rounded-lg shadow-sm p-4 text-center hover:shadow-md transition-shadow duration-300">
               <div className="w-full aspect-[3/2] bg-gray-100 rounded-lg flex items-center justify-center border border-gray-200 overflow-hidden mb-3">
                 {logo.logoUrl ? (
-                  <img
+                  <Image
                     src={logo.logoUrl}
                     alt={logo.name}
-                    className="max-w-full max-h-full object-contain transition-transform duration-300 hover:scale-105"
-                    loading="lazy"
-                    decoding="async"
+                    fill
+                    className="object-contain transition-transform duration-300 hover:scale-105"
                     onError={(e) => {
                       const target = e.target as HTMLImageElement
                       target.style.display = 'none'
