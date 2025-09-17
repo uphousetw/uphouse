@@ -42,3 +42,9 @@ next-env.d.ts
 
 # persistent data storage
 /data/
+
+# issue screenshots
+/issue-log/
+
+# Nice to have feature
+/feature/

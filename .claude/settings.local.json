@@ -55,7 +55,10 @@
       "Bash(npm uninstall:*)",
       "Bash(node:*)",
       "Bash(npm rebuild:*)",
-      "Bash(set NODE_OPTIONS=\"--max-old-space-size=4096\")"
+      "Bash(set NODE_OPTIONS=\"--max-old-space-size=4096\")",
+      "Bash(mkdir:*)",
+      "Bash(python:*)",
+      "Bash(xxd:*)"
     ],
     "deny": [],
     "ask": []

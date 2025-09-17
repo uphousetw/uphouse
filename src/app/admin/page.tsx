@@ -942,7 +942,7 @@ export default function AdminDashboard() {
                           const uploadResult = await uploadResponse.json()
                           return {
                             name: file.name.split('.')[0],
-                            category: '合作品牌',
+                            category: '建材品牌',
                             logoUrl: uploadResult.url
                           }
                         }
@@ -1134,7 +1134,7 @@ export default function AdminDashboard() {
 
                   <div>
                     <label htmlFor="brandLogos" className="block text-sm font-light text-gray-700 mb-2">
-                      合作品牌 Logo
+                      建材品牌 Logo
                     </label>
                     <div className="space-y-4">
                       <input

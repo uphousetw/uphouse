@@ -1,3 +1,5 @@
+import Image from 'next/image'
+
 export default function About() {
   return (
     <div className="min-h-screen bg-white">
@@ -42,8 +44,14 @@ export default function About() {
                 為每位客戶創造超越期待的居住體驗。
               </p>
             </div>
-            <div className="bg-gray-200 aspect-[4/3] rounded-sm flex items-center justify-center">
-              <span className="text-gray-400 font-light text-lg">公司形象圖片</span>
+            <div className="aspect-[4/3] rounded-sm overflow-hidden relative">
+              <Image
+                src="/images/projects/拾壹間.jpg"
+                alt="向上建設公司形象"
+                fill
+                className="object-cover"
+                priority
+              />
             </div>
           </div>
         </div>

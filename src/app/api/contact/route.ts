@@ -10,7 +10,7 @@ export interface ContactSubmission {
   phone?: string
   projectType?: string
   budget?: string
-  message: string
+  message?: string
   submittedAt: string
   status: 'new' | 'read' | 'replied'
 }
@@ -48,20 +48,32 @@ export async function POST(request: NextRequest) {
     const body = await request.json()
     
     // Validate required fields
-    if (!body.name || !body.email || !body.message) {
+    if (!body.name || !body.phone) {
       return NextResponse.json(
-        { error: 'Name, email, and message are required' },
+        { error: 'Name and phone are required' },
         { status: 400 }
       )
     }
 
-    // Validate email format
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-    if (!emailRegex.test(body.email)) {
+    // Validate Taiwan phone number format
+    const cleanPhone = body.phone.replace(/[\s-]/g, '')
+    const phoneRegex = /^(?:09\d{8}|0[2-8]\d{7,8}|070\d{7}|080[09]\d{6})$/
+    if (!phoneRegex.test(cleanPhone)) {
       return NextResponse.json(
-        { error: 'Invalid email format' },
+        { error: 'Please enter a valid Taiwan phone number format (e.g., 02-12345678, 0912345678, 070-1234567, 0800123456)' },
         { status: 400 }
       )
+    }
+
+    // Validate email format if provided
+    if (body.email && body.email.trim()) {
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+      if (!emailRegex.test(body.email)) {
+        return NextResponse.json(
+          { error: 'Invalid email format' },
+          { status: 400 }
+        )
+      }
     }
 
     const submission: ContactSubmission = {
@@ -71,7 +83,7 @@ export async function POST(request: NextRequest) {
       phone: body.phone?.trim() || '',
       projectType: body.projectType?.trim() || '',
       budget: body.budget?.trim() || '',
-      message: body.message.trim(),
+      message: body.message?.trim() || '',
       submittedAt: new Date().toISOString(),
       status: 'new'
     }

@@ -35,13 +35,13 @@ export default function ProjectDetail({ params }: Props) {
       try {
         const resolvedParams = await params
         const { id } = resolvedParams
-        
+
         const response = await fetch(`/api/projects/${id}`, {
           headers: {
             'Cache-Control': 'no-cache'
           }
         })
-        
+
         if (response.ok) {
           const projectData = await response.json()
           setProject(projectData)
@@ -97,20 +97,22 @@ export default function ProjectDetail({ params }: Props) {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
             {/* Project Image */}
             <div className="order-2 lg:order-1">
-              <div className="aspect-[4/3] bg-gray-200 rounded-sm overflow-hidden relative">
+              <div style={{
+                aspectRatio: '4/3',
+                backgroundColor: '#f5f5f5',
+                borderRadius: '4px',
+                overflow: 'hidden',
+                position: 'relative'
+              }}>
                 {project.image && project.image !== '/api/placeholder/800/600' ? (
-                  <Image
+                  <img
                     src={project.image}
                     alt={project.title}
-                    fill
-                    className="object-cover"
-                    onError={(e) => {
-                      const target = e.target as HTMLImageElement;
-                      target.style.display = 'none';
-                      const placeholder = target.parentElement?.querySelector('.placeholder-fallback');
-                      if (placeholder) {
-                        placeholder.classList.remove('hidden');
-                      }
+                    style={{
+                      width: '100%',
+                      height: '100%',
+                      objectFit: 'cover',
+                      display: 'block'
                     }}
                   />
                 ) : (
@@ -132,7 +134,7 @@ export default function ProjectDetail({ params }: Props) {
                 {project.title}
               </h1>
               <div className="h-1 w-16 bg-gray-900 mb-8"></div>
-              
+
               {/* Project Details */}
               <div className="space-y-4 mb-8">
                 <div className="flex">
