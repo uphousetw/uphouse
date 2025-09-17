@@ -50,7 +50,7 @@ export async function POST(request: NextRequest) {
     // Validate required fields
     if (!body.name || !body.phone) {
       return NextResponse.json(
-        { error: 'Name and phone are required' },
+        { error: '姓名和電話號碼為必填欄位' },
         { status: 400 }
       )
     }
@@ -60,7 +60,7 @@ export async function POST(request: NextRequest) {
     const phoneRegex = /^(?:09\d{8}|0[2-8]\d{7,8}|070\d{7}|080[09]\d{6})$/
     if (!phoneRegex.test(cleanPhone)) {
       return NextResponse.json(
-        { error: 'Please enter a valid Taiwan phone number format (e.g., 02-12345678, 0912345678, 070-1234567, 0800123456)' },
+        { error: '請輸入有效的台灣電話號碼格式（例如：02-12345678、0912345678、070-1234567、0800123456）' },
         { status: 400 }
       )
     }
@@ -70,7 +70,7 @@ export async function POST(request: NextRequest) {
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
       if (!emailRegex.test(body.email)) {
         return NextResponse.json(
-          { error: 'Invalid email format' },
+          { error: '電子信箱格式不正確' },
           { status: 400 }
         )
       }
@@ -115,7 +115,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(
       { 
-        message: 'Contact form submitted successfully',
+        message: '聯絡表單提交成功',
         id: submission.id
       },
       { status: 201 }
@@ -123,7 +123,7 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error('Contact form submission error:', error)
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { error: '伺服器內部錯誤' },
       { status: 500 }
     )
   }
@@ -170,7 +170,7 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     console.error('Failed to load contacts:', error)
     return NextResponse.json(
-      { error: 'Failed to load contacts' },
+      { error: '載入聯絡資料失敗' },
       { status: 500 }
     )
   }

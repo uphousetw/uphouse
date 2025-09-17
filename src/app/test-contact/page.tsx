@@ -1,41 +1,24 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 
 export default function Contact() {
   const [formData, setFormData] = useState({
     name: '',
     email: '',
     phone: '',
-    projectType: '',
     message: ''
   })
 
   const [isSubmitting, setIsSubmitting] = useState(false)
-  const [projects, setProjects] = useState<{id: number, title: string}[]>([])
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target
     setFormData(prev => ({
       ...prev,
       [name]: value
     }))
   }
-
-  useEffect(() => {
-    const fetchProjects = async () => {
-      try {
-        const response = await fetch('/api/projects')
-        if (response.ok) {
-          const data = await response.json()
-          setProjects(data.projects || [])
-        }
-      } catch (error) {
-        console.error('Failed to fetch projects:', error)
-      }
-    }
-    fetchProjects()
-  }, [])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -56,7 +39,6 @@ export default function Contact() {
           name: '',
           email: '',
           phone: '',
-          projectType: '',
           message: ''
         })
       } else {
@@ -118,27 +100,6 @@ export default function Contact() {
                   placeholder="請輸入您的電話號碼"
                   required
                 />
-              </div>
-
-              {/* Project Type Field */}
-              <div>
-                <label htmlFor="projectType" className="block text-sm font-medium text-gray-700 mb-2">
-                  想諮詢建案
-                </label>
-                <select
-                  id="projectType"
-                  name="projectType"
-                  value={formData.projectType}
-                  onChange={handleInputChange}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-black transition-colors"
-                >
-                  <option value="">請選擇建案</option>
-                  {projects.map((project) => (
-                    <option key={project.id} value={project.title}>
-                      {project.title}
-                    </option>
-                  ))}
-                </select>
               </div>
 
               {/* Email Field */}
@@ -269,7 +230,7 @@ export default function Contact() {
             <div className="bg-white rounded-lg p-8 shadow-sm">
               <div className="w-full h-80 rounded-lg overflow-hidden shadow-sm">
                 <iframe
-                  src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3634.5!2d120.8746!3d24.6875!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2z6IuX5qCX57ij56u55Y2X6Y6u5bq35b636I-U6KGX77yX77yR6Jmf!5e0!3m2!1szh-TW!2stw!4v1234567890123!5m2!1szh-TW!2stw"
+                  src="https://maps.google.com/maps?q=苗栗縣竹南鎮康德街71號&t=&z=15&ie=UTF8&iwloc=&output=embed"
                   width="100%"
                   height="100%"
                   style={{ border: 0 }}

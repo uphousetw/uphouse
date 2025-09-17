@@ -58,7 +58,8 @@
       "Bash(set NODE_OPTIONS=\"--max-old-space-size=4096\")",
       "Bash(mkdir:*)",
       "Bash(python:*)",
-      "Bash(xxd:*)"
+      "Bash(xxd:*)",
+      "Bash(copy:*)"
     ],
     "deny": [],
     "ask": []
