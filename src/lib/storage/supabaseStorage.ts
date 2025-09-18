@@ -41,6 +41,11 @@ function convertToSupabaseProject(project: Omit<Project, 'id' | 'createdAt' | 'u
 // Projects
 export async function getAllProjectsFromSupabase(): Promise<Project[]> {
   try {
+    if (!supabase) {
+      console.log('📁 Supabase client not available')
+      return []
+    }
+
     const { data, error } = await supabase
       .from('projects')
       .select('*')
@@ -60,6 +65,8 @@ export async function getAllProjectsFromSupabase(): Promise<Project[]> {
 
 export async function getProjectByIdFromSupabase(id: number): Promise<Project | null> {
   try {
+    if (!supabase) return null
+
     const { data, error } = await supabase
       .from('projects')
       .select('*')
@@ -80,6 +87,8 @@ export async function getProjectByIdFromSupabase(id: number): Promise<Project | 
 
 export async function addProjectToSupabase(projectData: Omit<Project, 'id' | 'createdAt' | 'updatedAt'>): Promise<Project | null> {
   try {
+    if (!supabase) return null
+
     const supabaseProject = convertToSupabaseProject(projectData)
 
     const { data, error } = await supabase
@@ -259,8 +268,15 @@ export async function updateContactInSupabase(id: number, updateData: Partial<Su
 // Check if Supabase is available
 export async function isSupabaseAvailable(): Promise<boolean> {
   try {
+    // Check if Supabase client is properly initialized
+    if (!supabase) {
+      console.log('📁 Supabase client not initialized - falling back to file storage')
+      return false
+    }
+
     // Try to access Supabase environment variables
     if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
+      console.log('📁 Supabase environment variables not set - using file storage')
       return false
     }
 
@@ -270,9 +286,14 @@ export async function isSupabaseAvailable(): Promise<boolean> {
       .select('id')
       .limit(1)
 
-    return !error
+    if (error) {
+      console.log('📁 Supabase connection failed - using file storage:', error.message)
+      return false
+    }
+
+    return true
   } catch (error) {
-    console.error('Supabase not available:', error)
+    console.log('📁 Supabase not available - using file storage:', error)
     return false
   }
 }

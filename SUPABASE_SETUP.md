@@ -9,7 +9,7 @@ This guide will help you set up Supabase for your Uphouse project to fix the Net
 2. Click "Start your project"
 3. Sign in with GitHub
 4. Create new project:
-   - **Project name**: `uphouse-portfolio`
+   - **Project name**: `uphouse`
    - **Database password**: Choose a strong password
    - **Region**: Choose closest to your users
 
