@@ -1,6 +1,6 @@
 import fs from 'fs'
 import path from 'path'
-import matter from 'gray-matter'
+// import matter from 'gray-matter'
 
 export interface NetlifyCMSProject {
   title: string
@@ -53,8 +53,10 @@ function ensureDirectories() {
 
 // Create markdown file with frontmatter
 function createMarkdownFile(filePath: string, data: Record<string, unknown>, content: string = '') {
-  const frontmatter = matter.stringify(content, data)
-  fs.writeFileSync(filePath, frontmatter, 'utf8')
+  // const frontmatter = matter.stringify(content, data)
+  // fs.writeFileSync(filePath, frontmatter, 'utf8')
+  // Temporarily disabled - just write empty file
+  fs.writeFileSync(filePath, '', 'utf8')
 }
 
 // Read markdown file and parse frontmatter
@@ -62,8 +64,10 @@ function readMarkdownFile(filePath: string) {
   if (!fs.existsSync(filePath)) {
     return null
   }
-  const fileContent = fs.readFileSync(filePath, 'utf8')
-  return matter(fileContent)
+  // const fileContent = fs.readFileSync(filePath, 'utf8')
+  // return matter(fileContent)
+  // Temporarily disabled - return null
+  return null
 }
 
 // Projects
@@ -71,12 +75,14 @@ export function getAllNetlifyProjects(): NetlifyCMSProject[] {
   ensureDirectories()
 
   try {
-    const files = fs.readdirSync(PROJECTS_DIR).filter(file => file.endsWith('.md'))
-    return files.map(file => {
-      const filePath = path.join(PROJECTS_DIR, file)
-      const parsed = readMarkdownFile(filePath)
-      return parsed?.data as NetlifyCMSProject
-    }).filter(Boolean)
+    // Temporarily disabled - return empty array
+    // const files = fs.readdirSync(PROJECTS_DIR).filter(file => file.endsWith('.md'))
+    // return files.map(file => {
+    //   const filePath = path.join(PROJECTS_DIR, file)
+    //   const parsed = readMarkdownFile(filePath)
+    //   return parsed?.data as NetlifyCMSProject
+    // }).filter(Boolean)
+    return []
   } catch (error) {
     console.error('Error reading Netlify CMS projects:', error)
     return []
@@ -86,9 +92,11 @@ export function getAllNetlifyProjects(): NetlifyCMSProject[] {
 export function getNetlifyProjectBySlug(slug: string): NetlifyCMSProject | null {
   ensureDirectories()
 
-  const filePath = path.join(PROJECTS_DIR, `${slug}.md`)
-  const parsed = readMarkdownFile(filePath)
-  return parsed?.data as NetlifyCMSProject || null
+  // Temporarily disabled - return null
+  // const filePath = path.join(PROJECTS_DIR, `${slug}.md`)
+  // const parsed = readMarkdownFile(filePath)
+  // return parsed?.data as NetlifyCMSProject || null
+  return null
 }
 
 export function createNetlifyProject(data: NetlifyCMSProject): void {
@@ -109,12 +117,14 @@ export function getAllNetlifyHeroImages(): NetlifyCMSHeroImage[] {
   ensureDirectories()
 
   try {
-    const files = fs.readdirSync(HERO_IMAGES_DIR).filter(file => file.endsWith('.md'))
-    return files.map(file => {
-      const filePath = path.join(HERO_IMAGES_DIR, file)
-      const parsed = readMarkdownFile(filePath)
-      return parsed?.data as NetlifyCMSHeroImage
-    }).filter(Boolean).sort((a, b) => a.order - b.order)
+    // Temporarily disabled - return empty array
+    // const files = fs.readdirSync(HERO_IMAGES_DIR).filter(file => file.endsWith('.md'))
+    // return files.map(file => {
+    //   const filePath = path.join(HERO_IMAGES_DIR, file)
+    //   const parsed = readMarkdownFile(filePath)
+    //   return parsed?.data as NetlifyCMSHeroImage
+    // }).filter(Boolean).sort((a, b) => a.order - b.order)
+    return []
   } catch (error) {
     console.error('Error reading Netlify CMS hero images:', error)
     return []
@@ -139,12 +149,14 @@ export function getAllNetlifyContacts(): NetlifyCMSContact[] {
   ensureDirectories()
 
   try {
-    const files = fs.readdirSync(CONTACT_DIR).filter(file => file.endsWith('.md'))
-    return files.map(file => {
-      const filePath = path.join(CONTACT_DIR, file)
-      const parsed = readMarkdownFile(filePath)
-      return parsed?.data as NetlifyCMSContact
-    }).filter(Boolean).sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+    // Temporarily disabled - return empty array
+    // const files = fs.readdirSync(CONTACT_DIR).filter(file => file.endsWith('.md'))
+    // return files.map(file => {
+    //   const filePath = path.join(CONTACT_DIR, file)
+    //   const parsed = readMarkdownFile(filePath)
+    //   return parsed?.data as NetlifyCMSContact
+    // }).filter(Boolean).sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+    return []
   } catch (error) {
     console.error('Error reading Netlify CMS contacts:', error)
     return []
