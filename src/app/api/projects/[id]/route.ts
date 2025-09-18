@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getProjectById, updateProject, deleteProject } from '@/lib/storage/projectStorage'
+import { getProjectById, updateProject, deleteProject } from '@/lib/storage/hybridStorage'
 
 interface Props {
   params: Promise<{ id: string }>
@@ -8,7 +8,7 @@ interface Props {
 // GET /api/projects/[id] - Get single project
 export async function GET(request: NextRequest, { params }: Props) {
   const { id } = await params
-  const project = getProjectById(parseInt(id))
+  const project = await getProjectById(parseInt(id))
 
   if (!project) {
     return NextResponse.json(
@@ -37,7 +37,7 @@ export async function PUT(request: NextRequest, { params }: Props) {
       )
     }
 
-    const updatedProject = updateProject(projectId, body)
+    const updatedProject = await updateProject(projectId, body)
 
     if (!updatedProject) {
       console.error('Project not found for ID:', projectId)
@@ -62,7 +62,7 @@ export async function PUT(request: NextRequest, { params }: Props) {
 // DELETE /api/projects/[id] - Delete project (Admin only)
 export async function DELETE(request: NextRequest, { params }: Props) {
   const { id } = await params
-  const success = deleteProject(parseInt(id))
+  const success = await deleteProject(parseInt(id))
 
   if (!success) {
     return NextResponse.json(

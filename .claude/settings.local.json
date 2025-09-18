@@ -59,7 +59,8 @@
       "Bash(mkdir:*)",
       "Bash(python:*)",
       "Bash(xxd:*)",
-      "Bash(copy:*)"
+      "Bash(copy:*)",
+      "Bash(git checkout:*)"
     ],
     "deny": [],
     "ask": []

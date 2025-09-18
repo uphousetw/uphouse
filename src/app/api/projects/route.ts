@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getAllProjects, addProject, updateProject } from '@/lib/storage/projectStorage'
+import { getAllProjects, addProject, updateProject } from '@/lib/storage/hybridStorage'
 import { Project } from '@/lib/data/projects'
 // import { getAllNetlifyProjects, createNetlifyProject } from '@/lib/netlify-cms'
 
@@ -23,8 +23,8 @@ export async function GET(request: NextRequest) {
     // }))
     filteredProjects = []
   } else {
-    // Use existing file storage
-    filteredProjects = getAllProjects()
+    // Use hybrid storage (Supabase or file)
+    filteredProjects = await getAllProjects()
   }
 
   if (category) {
@@ -78,9 +78,16 @@ export async function POST(request: NextRequest) {
       // createNetlifyProject(projectData)
       return NextResponse.json({ message: 'Netlify CMS temporarily disabled', data: projectData }, { status: 201 })
     } else {
-      // Use existing file storage
-      const newProject = addProject(projectData)
-      return NextResponse.json(newProject, { status: 201 })
+      // Use hybrid storage (Supabase or file)
+      const newProject = await addProject(projectData)
+      if (newProject) {
+        return NextResponse.json(newProject, { status: 201 })
+      } else {
+        return NextResponse.json(
+          { error: 'Failed to create project' },
+          { status: 500 }
+        )
+      }
     }
   } catch (error) {
     console.error('Error creating project:', error)
@@ -104,7 +111,7 @@ export async function PUT(request: NextRequest) {
       )
     }
 
-    const updatedProject = updateProject(parseInt(id), updateData)
+    const updatedProject = await updateProject(parseInt(id), updateData)
 
     if (!updatedProject) {
       return NextResponse.json(
