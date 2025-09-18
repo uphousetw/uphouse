@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getAllProjects, addProject, updateProject } from '@/lib/storage/projectStorage'
-import { getAllNetlifyProjects, createNetlifyProject } from '@/lib/netlify-cms'
+import { Project } from '@/lib/data/projects'
+// import { getAllNetlifyProjects, createNetlifyProject } from '@/lib/netlify-cms'
 
 // GET /api/projects - Get all projects with caching
 export async function GET(request: NextRequest) {
@@ -10,16 +11,17 @@ export async function GET(request: NextRequest) {
   const category = searchParams.get('category')
   const useNetlify = searchParams.get('netlify') === 'true'
 
-  let filteredProjects
+  let filteredProjects: Project[]
 
   if (useNetlify) {
-    // Use Netlify CMS data
-    filteredProjects = getAllNetlifyProjects().map((project, index) => ({
-      id: index + 1,
-      ...project,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
-    }))
+    // Use Netlify CMS data - temporarily disabled
+    // filteredProjects = getAllNetlifyProjects().map((project, index) => ({
+    //   id: index + 1,
+    //   ...project,
+    //   createdAt: new Date().toISOString(),
+    //   updatedAt: new Date().toISOString()
+    // }))
+    filteredProjects = []
   } else {
     // Use existing file storage
     filteredProjects = getAllProjects()
@@ -72,9 +74,9 @@ export async function POST(request: NextRequest) {
     }
 
     if (useNetlify) {
-      // Create in Netlify CMS format
-      createNetlifyProject(projectData)
-      return NextResponse.json({ message: 'Project created in Netlify CMS', data: projectData }, { status: 201 })
+      // Create in Netlify CMS format - temporarily disabled
+      // createNetlifyProject(projectData)
+      return NextResponse.json({ message: 'Netlify CMS temporarily disabled', data: projectData }, { status: 201 })
     } else {
       // Use existing file storage
       const newProject = addProject(projectData)

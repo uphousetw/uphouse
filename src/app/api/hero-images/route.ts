@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { writeFile, readFile } from 'fs/promises'
 import path from 'path'
-import { getAllNetlifyHeroImages, createNetlifyHeroImage } from '@/lib/netlify-cms'
+// import { getAllNetlifyHeroImages, createNetlifyHeroImage } from '@/lib/netlify-cms'
 
 const HERO_IMAGES_FILE = path.join(process.cwd(), 'src/lib/data/hero-images.json')
 
@@ -22,9 +22,10 @@ export async function GET(request: NextRequest) {
     const useNetlify = searchParams.get('netlify') === 'true'
 
     if (useNetlify) {
-      // Use Netlify CMS data
-      const netlifyImages = getAllNetlifyHeroImages()
-      return NextResponse.json({ images: netlifyImages })
+      // Use Netlify CMS data - temporarily disabled
+      // const netlifyImages = getAllNetlifyHeroImages()
+      // return NextResponse.json({ images: netlifyImages })
+      return NextResponse.json({ images: [] })
     } else {
       // Use existing file storage
       await initHeroImagesFile()
@@ -55,19 +56,19 @@ export async function POST(request: NextRequest) {
     }
 
     if (useNetlify) {
-      // Create in Netlify CMS format
-      images.forEach((image, index) => {
-        createNetlifyHeroImage({
-          title: image.title || `Hero Image ${index + 1}`,
-          image: image.image,
-          description: image.description,
-          order: image.order || index + 1
-        })
-      })
+      // Create in Netlify CMS format - temporarily disabled
+      // images.forEach((image, index) => {
+      //   createNetlifyHeroImage({
+      //     title: image.title || `Hero Image ${index + 1}`,
+      //     image: image.image,
+      //     description: image.description,
+      //     order: image.order || index + 1
+      //   })
+      // })
 
       return NextResponse.json({
-        message: 'Hero images created in Netlify CMS',
-        images
+        message: 'Netlify CMS temporarily disabled',
+        images: []
       })
     } else {
       // Use existing file storage
