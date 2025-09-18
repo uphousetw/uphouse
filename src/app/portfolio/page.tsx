@@ -105,10 +105,10 @@ export default function Portfolio() {
             </h1>
             <div className="h-1 w-16 bg-gray-900 mx-auto mb-8"></div>
             <p className="text-lg text-gray-600 font-light max-w-2xl mx-auto leading-relaxed">
-              探索我們的住宅設計項目，每個作品都體現了對細節的執著與對品質的追求。
+              探索我們的建案，每個作品都體現了對細節的執著與對品質的追求。
             </p>
             <p className="text-sm text-gray-400 mt-4">
-              顯示 {currentProjects.length} / {projects.length} 個專案
+              
             </p>
           </div>
         </div>
@@ -117,13 +117,13 @@ export default function Portfolio() {
       {/* Projects Grid */}
       <section className="py-24">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-12">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-12">
             {currentProjects.map((project) => {
               console.log('🏠 Rendering project:', project.id, project.title, project.image)
 
               return (
-                <div key={project.id} className="group">
-                  <div className="bg-white rounded-sm shadow-sm overflow-hidden hover:shadow-lg transition-all duration-300">
+                <div key={project.id} className="group h-full">
+                  <div className="bg-white rounded-sm shadow-sm overflow-hidden hover:shadow-lg transition-all duration-300 h-full flex flex-col">
                     {/* Project Image */}
                     <div style={{ height: '320px', position: 'relative', backgroundColor: '#f5f5f5', overflow: 'hidden' }}>
                       {project.image && project.image !== '/api/placeholder/800/600' ? (
@@ -184,7 +184,7 @@ export default function Portfolio() {
                     </div>
 
                     {/* Project Info */}
-                    <div className="p-8">
+                    <div className="p-8 flex-1 flex flex-col">
                       <div className="flex items-center justify-between mb-4">
                         <span className="text-xs font-light text-gray-500 uppercase tracking-wider">
                           {project.category}
@@ -198,7 +198,7 @@ export default function Portfolio() {
                         {project.title}
                       </h3>
 
-                      <p className="text-gray-600 font-light leading-relaxed text-sm mb-6">
+                      <p className="text-gray-600 font-light leading-relaxed text-sm mb-6 flex-1">
                         {project.description}
                       </p>
 

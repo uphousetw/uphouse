@@ -4,6 +4,17 @@ import { useState, useEffect, useMemo } from 'react'
 import Link from "next/link";
 import dynamic from 'next/dynamic'
 
+interface Project {
+  id: number
+  title: string
+  description: string
+  image?: string
+  completionDate: string
+  category: string
+  location?: string
+  area?: string
+}
+
 // Lazy load components that are not immediately visible
 const HeroSlider = dynamic(() => import('@/components/HeroSlider'), {
   loading: () => (
@@ -17,6 +28,8 @@ const HeroSlider = dynamic(() => import('@/components/HeroSlider'), {
 export default function Home() {
   const [heroImages, setHeroImages] = useState<string[]>([])
   const [loading, setLoading] = useState(true)
+  const [projects, setProjects] = useState<Project[]>([])
+  const [projectsLoading, setProjectsLoading] = useState(true)
 
   // Memoize the API call to prevent unnecessary re-fetching
   const loadHeroImages = useMemo(() => {
@@ -40,9 +53,34 @@ export default function Home() {
     }
   }, [])
 
+  // Load projects
+  const loadProjects = useMemo(() => {
+    return async () => {
+      try {
+        const response = await fetch('/api/projects', {
+          headers: {
+            'Cache-Control': 'public, max-age=300, stale-while-revalidate=600'
+          }
+        })
+        if (response.ok) {
+          const data = await response.json()
+          if (data && Array.isArray(data.projects)) {
+            // Show only first 3 projects for featured section
+            setProjects(data.projects.slice(0, 3))
+          }
+        }
+      } catch (error) {
+        console.error('Failed to load projects:', error)
+      } finally {
+        setProjectsLoading(false)
+      }
+    }
+  }, [])
+
   useEffect(() => {
     loadHeroImages()
-  }, [loadHeroImages])
+    loadProjects()
+  }, [loadHeroImages, loadProjects])
 
   return (
     <div style={{backgroundColor: '#F9F1EC'}}>
@@ -113,15 +151,78 @@ export default function Home() {
               精選建案
             </h2>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              探索我們最新的住宅設計項目，每個細節都體現專業品質
+              探索我們的建案，每個細節都體現專業品質
             </p>
           </div>
 
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 mb-12">
-            {[1, 2, 3].map((item) => (
-              <div key={item} className="rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1" style={{backgroundColor: 'rgba(231, 229, 228, 0.5)'}}>
-                <div className="h-48 bg-gradient-to-br from-gray-200 to-gray-300 relative">
-                  <div className="absolute inset-0 flex items-center justify-center">
+            {projectsLoading ? (
+              // Loading placeholders
+              [1, 2, 3].map((item) => (
+                <div key={item} className="rounded-xl shadow-lg overflow-hidden" style={{backgroundColor: 'rgba(231, 229, 228, 0.5)'}}>
+                  <div className="h-48 bg-gradient-to-br from-gray-200 to-gray-300 animate-pulse"></div>
+                  <div className="p-6">
+                    <div className="h-4 bg-gray-300 rounded mb-2 animate-pulse"></div>
+                    <div className="h-3 bg-gray-200 rounded mb-4 animate-pulse"></div>
+                    <div className="flex items-center justify-between">
+                      <div className="h-3 bg-gray-200 rounded w-24 animate-pulse"></div>
+                      <div className="h-3 bg-gray-200 rounded w-16 animate-pulse"></div>
+                    </div>
+                  </div>
+                </div>
+              ))
+            ) : projects.length > 0 ? (
+              // Real project data
+              projects.map((project) => (
+                <Link
+                  key={project.id}
+                  href={`/portfolio/${project.id}`}
+                  className="rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 block"
+                  style={{backgroundColor: 'rgba(231, 229, 228, 0.5)'}}
+                >
+                  <div className="h-48 relative overflow-hidden">
+                    {project.image && project.image !== '/api/placeholder/800/600' ? (
+                      <img
+                        src={project.image}
+                        alt={project.title}
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <div className="h-full bg-gradient-to-br from-gray-200 to-gray-300 flex items-center justify-center">
+                        <div className="text-center">
+                          <div className="w-12 h-12 bg-white/80 rounded-lg flex items-center justify-center mx-auto mb-2">
+                            <svg className="w-6 h-6 text-gray-600" fill="currentColor" viewBox="0 0 20 20">
+                              <path fillRule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clipRule="evenodd" />
+                            </svg>
+                          </div>
+                          <span className="text-gray-500 text-sm">建案圖片</span>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="p-6">
+                    <h3 className="text-lg font-medium text-gray-900 mb-2">
+                      {project.title}
+                    </h3>
+                    <p className="text-gray-600 text-sm mb-4 line-clamp-2">
+                      {project.description}
+                    </p>
+                    <div className="flex items-center justify-between text-sm text-gray-500">
+                      <span>預計完工：{project.completionDate}</span>
+                      <span className="flex items-center">
+                        <div className="w-2 h-2 bg-green-400 rounded-full mr-2"></div>
+                        {project.category}
+                      </span>
+                    </div>
+                  </div>
+                </Link>
+              ))
+            ) : (
+              // No projects fallback
+              [1, 2, 3].map((item) => (
+                <div key={item} className="rounded-xl shadow-lg overflow-hidden" style={{backgroundColor: 'rgba(231, 229, 228, 0.5)'}}>
+                  <div className="h-48 bg-gradient-to-br from-gray-200 to-gray-300 flex items-center justify-center">
                     <div className="text-center">
                       <div className="w-12 h-12 bg-white/80 rounded-lg flex items-center justify-center mx-auto mb-2">
                         <svg className="w-6 h-6 text-gray-600" fill="currentColor" viewBox="0 0 20 20">
@@ -131,25 +232,25 @@ export default function Home() {
                       <span className="text-gray-500 text-sm">建案圖片</span>
                     </div>
                   </div>
-                </div>
-                
-                <div className="p-6">
-                  <h3 className="text-lg font-medium text-gray-900 mb-2">
-                    住宅建案 {item}
-                  </h3>
-                  <p className="text-gray-600 text-sm mb-4">
-                    現代簡約風格設計，注重自然採光與空間流動
-                  </p>
-                  <div className="flex items-center justify-between text-sm text-gray-500">
-                    <span>預計完工：2024 Q{item + 1}</span>
-                    <span className="flex items-center">
-                      <div className="w-2 h-2 bg-green-400 rounded-full mr-2"></div>
-                      進行中
-                    </span>
+
+                  <div className="p-6">
+                    <h3 className="text-lg font-medium text-gray-900 mb-2">
+                      住宅建案 {item}
+                    </h3>
+                    <p className="text-gray-600 text-sm mb-4">
+                      現代簡約風格設計，注重自然採光與空間流動
+                    </p>
+                    <div className="flex items-center justify-between text-sm text-gray-500">
+                      <span>預計完工：2024 Q{item + 1}</span>
+                      <span className="flex items-center">
+                        <div className="w-2 h-2 bg-green-400 rounded-full mr-2"></div>
+                        進行中
+                      </span>
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
+              ))
+            )}
           </div>
 
           <div className="text-center">
