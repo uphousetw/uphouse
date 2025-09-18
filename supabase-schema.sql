@@ -81,44 +81,73 @@ CREATE POLICY "Allow all operations for authenticated users on hero_images" ON h
 CREATE POLICY "Allow all operations for authenticated users on contacts" ON contacts
   FOR ALL TO authenticated USING (true);
 
--- Insert sample data
-INSERT INTO projects (title, description, full_description, image, completion_date, category, location, area, features, gallery, brand_logos) VALUES
+-- Insert your actual portfolio data
+INSERT INTO projects (id, title, description, full_description, image, completion_date, category, location, area, features, gallery, brand_logos) VALUES
 (
-  '現代簡約別墅',
+  1,
+  '拾壹間(已完銷)',
   '位於台北市的現代簡約風格別墅，採用大面積玻璃窗設計，讓自然光線充分進入室內空間。',
   '這是一個位於台北市精華地段的現代簡約風格別墅項目。設計以大面積玻璃窗為特色，讓自然光線充分進入室內空間，創造出開闊明亮的居住環境。',
-  '/api/placeholder/800/600',
-  '2024年6月',
+  '/images/projects/1757997792250____.jpg',
+  '2025/12',
   '透天',
   '台北市大安區',
-  '280坪',
+  '30',
   ARRAY['大面積玻璃窗', '開放式格局', '進口石材', '實木地板', '智慧家居系統'],
   ARRAY['/api/placeholder/800/600', '/api/placeholder/800/600', '/api/placeholder/800/600'],
   '[
-    {"name": "台灣水泥", "category": "水泥製造"},
-    {"name": "潤泰建材", "category": "綜合建材"},
-    {"name": "三商建材", "category": "建築材料"},
-    {"name": "國產建材實業", "category": "建材實業"}
+    {"name": "sakura", "category": "合作品牌", "logoUrl": "/images/brand-logos/1757997792390_sakura.png"},
+    {"name": "螢幕擷取畫面 2025-09-11 122745", "category": "合作品牌", "logoUrl": "/images/brand-logos/1757997792411________2025-09-11_122745.png"}
   ]'::jsonb
 ),
 (
-  '都會雅居',
-  '坐落於新北市的都會住宅設計，強調空間的多功能性與收納效率。',
-  '都會雅居項目位於新北市核心區域，是專為現代都會人士打造的精緻住宅。設計特別強調空間的多功能性與收納效率。',
-  '/api/placeholder/800/600',
-  '2024年9月',
+  2,
+  '八宅',
+  '5層樓電梯華廈',
+  '2-3房八席珍藏: 靜享簡約生活\n全平面車位: 日常進出輕鬆自在\n★基地位置：苗栗縣後龍鎮新東路（栗園米食對面）',
+  '/images/projects/1757999572546_1757393089704___.jpg',
+  '2026年12月',
   '華廈',
-  '新北市板橋區',
-  '120坪',
+  '苗栗縣後龍鎮新東路',
+  '30、42坪',
   ARRAY['多功能空間設計', '高效收納系統', '現代簡約風格', '優質建材', '節能環保設計'],
   ARRAY['/api/placeholder/800/600', '/api/placeholder/800/600', '/api/placeholder/800/600'],
   '[
-    {"name": "和成建材", "category": "衛浴設備"},
-    {"name": "台塑建材", "category": "塑膠建材"},
-    {"name": "潤泰建材", "category": "綜合建材"},
-    {"name": "國產建材實業", "category": "建材實業"}
+    {"name": "bosch", "category": "合作品牌", "logoUrl": "/images/brand-logos/1757999573997_bosch.svg"},
+    {"name": "grohe-2", "category": "合作品牌", "logoUrl": "/images/brand-logos/1757999573952_grohe-2.svg"},
+    {"name": "kronotex", "category": "合作品牌", "logoUrl": "/images/brand-logos/1757999573952_kronotex.png"},
+    {"name": "philips", "category": "合作品牌", "logoUrl": "/images/brand-logos/1757999574456_philips.svg"},
+    {"name": "sakura", "category": "合作品牌", "logoUrl": "/images/brand-logos/1757999575281_sakura.png"},
+    {"name": "villeroy-boch", "category": "合作品牌", "logoUrl": "/images/brand-logos/1757999575987_villeroy-boch.svg"},
+    {"name": "ykkap-logo", "category": "合作品牌", "logoUrl": "/images/brand-logos/1757999575987_ykkap-logo.svg"}
+  ]'::jsonb
+),
+(
+  3,
+  '六埕',
+  '珍稀六戶: 每戶皆是獨一無二的私藏',
+  '均值80坪: 尺度寬敞、生活更從容\n\n農+建雙重地貌: 保有生活彈性與未來潛力\n\n獨棟雙拼設計: 動線分明、住戶單純、居家隱私高 (封閉型社區)\n\n無須捨棄空間與品質，一次滿足你對家的所有想像。\n\n★基地位置：苗栗縣後龍鎮二張犁段 (近造豐路全家)',
+  '/images/projects/1758003559804___.jpg',
+  '2026年12月',
+  '透天',
+  '',
+  '80坪',
+  ARRAY['多功能空間設計', '高效收納系統', '現代簡約風格', '優質建材', '節能環保設計'],
+  ARRAY[]::text[],
+  '[
+    {"name": "bosch", "category": "合作品牌", "logoUrl": "/images/brand-logos/1758003561146_bosch.svg"},
+    {"name": "grohe-2", "category": "合作品牌", "logoUrl": "/images/brand-logos/1758003561141_grohe-2.svg"},
+    {"name": "kronotex", "category": "合作品牌", "logoUrl": "/images/brand-logos/1758003561142_kronotex.png"},
+    {"name": "philips", "category": "合作品牌", "logoUrl": "/images/brand-logos/1758003561142_philips.svg"},
+    {"name": "sakura", "category": "合作品牌", "logoUrl": "/images/brand-logos/1758003561143_sakura.png"},
+    {"name": "villeroy-boch", "category": "合作品牌", "logoUrl": "/images/brand-logos/1758003561253_villeroy-boch.svg"},
+    {"name": "ykkap-logo", "category": "合作品牌", "logoUrl": "/images/brand-logos/1758003561304_ykkap-logo.svg"},
+    {"name": "螢幕擷取畫面 2025-09-11 122745", "category": "合作品牌", "logoUrl": "/images/brand-logos/1758003561307________2025-09-11_122745.png"}
   ]'::jsonb
 );
+
+-- Set the sequence to continue from the highest ID
+SELECT setval('projects_id_seq', 3, true);
 
 -- Insert sample hero images
 INSERT INTO hero_images (title, image, description, order_index) VALUES
