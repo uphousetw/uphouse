@@ -5,11 +5,13 @@ import { useAuth } from '@/providers/AuthProvider'
 const adminNav = [
   { label: '儀表板', to: '/admin' },
   { label: '建案管理', to: '/admin/projects' },
-  { label: '潛在客戶', to: '/admin/leads' },
+  { label: '帳號設定', to: '/admin/settings', role: 'admin' },
+  { label: '潛在客戶', to: '/admin/leads', role: 'admin' },
 ]
 
 export const AdminLayout = () => {
   const { profile, user, signOut } = useAuth()
+  const currentRole = profile?.role === 'admin' ? 'admin' : 'editor'
 
   return (
     <div className="flex min-h-screen bg-secondary/40">
@@ -18,15 +20,17 @@ export const AdminLayout = () => {
           Uphouse Admin
         </Link>
         <nav className="mt-8 space-y-2 text-sm text-muted-foreground">
-          {adminNav.map((item) => (
-            <Link
-              key={item.to}
-              to={item.to}
-              className="block rounded-lg px-3 py-2 transition hover:bg-secondary hover:text-secondary-foreground"
-            >
-              {item.label}
-            </Link>
-          ))}
+          {adminNav
+            .filter((item) => !item.role || item.role === currentRole)
+            .map((item) => (
+              <Link
+                key={item.to}
+                to={item.to}
+                className="block rounded-lg px-3 py-2 transition hover:bg-secondary hover:text-secondary-foreground"
+              >
+                {item.label}
+              </Link>
+            ))}
         </nav>
         <div className="mt-auto rounded-xl border border-border bg-secondary/50 p-3 text-xs text-muted-foreground">
           <p className="font-semibold text-foreground">{profile?.full_name ?? user?.email}</p>

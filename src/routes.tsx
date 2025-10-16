@@ -13,6 +13,7 @@ import { AdminLeadsPage } from './pages/admin/AdminLeadsPage'
 import { AdminLoginPage } from './pages/admin/AdminLoginPage'
 import { AdminProjectsPage } from './pages/admin/AdminProjectsPage'
 import { AdminProjectFormPage } from './pages/admin/AdminProjectFormPage'
+import { AdminSettingsPage } from './pages/admin/AdminSettingsPage'
 
 export const router = createBrowserRouter([
   {
@@ -39,6 +40,14 @@ export const router = createBrowserRouter([
       { path: 'projects', element: <AdminProjectsPage /> },
       { path: 'projects/new', element: <AdminProjectFormPage /> },
       { path: 'projects/:slug/edit', element: <AdminProjectFormPage /> },
+      {
+        path: 'settings',
+        element: (
+          <RequireAuth role="admin">
+            <AdminSettingsPage />
+          </RequireAuth>
+        ),
+      },
       {
         path: 'leads',
         element: (

@@ -1,4 +1,4 @@
-import { FormEvent, useEffect, useMemo, useState } from 'react'
+import { ChangeEvent, FormEvent, useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 
 import { mapProject, type ProjectRow, type ProjectStatus } from '@/data/projects'
@@ -14,13 +14,21 @@ interface ProjectFormState {
   unitType: string
   priceRange: string
   description: string
-  highlights: string
-  heroImage: string
-  gallery: string
+  highlightsText: string
   contactPhone: string
   address: string
   launchDate: string
   isFeatured: boolean
+}
+
+interface HeroMedia {
+  url: string
+  deleteToken?: string | null
+}
+
+interface GalleryItem {
+  url: string
+  deleteToken?: string | null
 }
 
 const statusOptions: ProjectStatus[] = ['預售', '施工中', '已完工']
@@ -35,13 +43,53 @@ const defaultFormState: ProjectFormState = {
   unitType: '',
   priceRange: '',
   description: '',
-  highlights: '',
-  heroImage: '',
-  gallery: '',
+  highlightsText: '',
   contactPhone: '',
   address: '',
   launchDate: '',
   isFeatured: false,
+}
+
+const cloudName = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME as string | undefined
+const uploadPreset = import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET as string | undefined
+
+const sanitizeName = (value: string) =>
+  value
+    .trim()
+    .toLowerCase()
+    .replace(/\s+/g, '-')
+    .replace(/[^a-z0-9-_]/g, '')
+
+const uploadImage = async (file: File, folder?: string, publicId?: string) => {
+  if (!cloudName || !uploadPreset) {
+    throw new Error('尚未設定 Cloudinary 環境變數。')
+  }
+
+  const formData = new FormData()
+  formData.append('file', file)
+  formData.append('upload_preset', uploadPreset)
+  if (folder?.trim()) {
+    formData.append('folder', folder.trim())
+  }
+  if (publicId?.trim()) {
+    formData.append('public_id', publicId.trim())
+  }
+
+  const response = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/upload`, {
+    method: 'POST',
+    body: formData,
+  })
+
+  if (!response.ok) {
+    const payload = await response.json()
+    throw new Error(payload.error?.message ?? '上傳失敗，請稍後再試。')
+  }
+
+  return response.json() as Promise<{
+    secure_url: string
+    delete_token?: string
+    public_id: string
+  }>
 }
 
 export const AdminProjectFormPage = () => {
@@ -50,10 +98,17 @@ export const AdminProjectFormPage = () => {
   const isEditMode = Boolean(slug)
 
   const [form, setForm] = useState<ProjectFormState>(defaultFormState)
+  const [hero, setHero] = useState<HeroMedia>({ url: '', deleteToken: null })
+  const [galleryItems, setGalleryItems] = useState<GalleryItem[]>([])
   const [loading, setLoading] = useState(isSupabaseConfigured && isEditMode)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState<string | null>(null)
+  const [heroImageName, setHeroImageName] = useState('')
+  const [galleryImageBase, setGalleryImageBase] = useState('')
+
+  const heroInputRef = useRef<HTMLInputElement | null>(null)
+  const galleryInputRef = useRef<HTMLInputElement | null>(null)
 
   useEffect(() => {
     if (!isEditMode || !slug) {
@@ -96,14 +151,22 @@ export const AdminProjectFormPage = () => {
           unitType: project.unitType,
           priceRange: project.priceRange,
           description: project.description,
-          highlights: project.highlights.join('\n'),
-          heroImage: project.heroImage,
-          gallery: project.gallery.join('\n'),
+          highlightsText: project.highlights.join('\n'),
           contactPhone: project.contactPhone,
           address: project.address,
           launchDate: project.launchDate,
           isFeatured: project.isFeatured,
         })
+        setHero({
+          url: project.heroImage,
+          deleteToken: project.heroImageDeleteToken ?? null,
+        })
+
+        const combinedGallery: GalleryItem[] = project.gallery.map((url, index) => ({
+          url,
+          deleteToken: project.galleryDeleteTokens?.[index] ?? null,
+        }))
+        setGalleryItems(combinedGallery)
         setError(null)
       }
 
@@ -119,7 +182,7 @@ export const AdminProjectFormPage = () => {
 
   const pageTitle = useMemo(() => (isEditMode ? '編輯建案' : '新增建案'), [isEditMode])
 
-  const handleChange =
+  const handleFieldChange =
     (field: keyof ProjectFormState) =>
     (value: string | boolean) => {
       setForm((prev) => ({
@@ -127,6 +190,82 @@ export const AdminProjectFormPage = () => {
         [field]: value,
       }))
     }
+
+  const handleHeroInputChange = (value: string) => {
+    setHero({ url: value, deleteToken: undefined })
+  }
+
+  const handleGalleryTextareaChange = (event: ChangeEvent<HTMLTextAreaElement>) => {
+    const lines = event.target.value
+      .split('\n')
+      .map((line) => line.trim())
+      .filter(Boolean)
+
+    setGalleryItems((prev) =>
+      lines.map((url) => {
+        const existing = prev.find((item) => item.url === url)
+        return existing ?? { url }
+      }),
+    )
+  }
+
+  const handleHeroUpload = async (event: ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0]
+    if (!file) {
+      return
+    }
+    try {
+      const folder = form.slug ? `projects/${form.slug}/hero` : undefined
+      const publicId = sanitizeName(heroImageName) || undefined
+      const result = await uploadImage(file, folder, publicId)
+      setHero({ url: result.secure_url, deleteToken: result.delete_token ?? null })
+      setError(null)
+    } catch (uploadError) {
+      setError(uploadError instanceof Error ? uploadError.message : '上傳失敗，請稍後再試。')
+    } finally {
+      if (heroInputRef.current) {
+        heroInputRef.current.value = ''
+      }
+    }
+  }
+
+  const handleGalleryUpload = async (event: ChangeEvent<HTMLInputElement>) => {
+    const files = event.target.files
+    if (!files || files.length === 0) {
+      return
+    }
+
+    try {
+      const folder = form.slug ? `projects/${form.slug}/gallery` : undefined
+      const base = sanitizeName(galleryImageBase)
+      const queue = Array.from(files)
+      for (let index = 0; index < queue.length; index += 1) {
+        const file = queue[index]
+        const name = base ? `${base}-${index + 1}` : undefined
+        const result = await uploadImage(file, folder, name)
+        setGalleryItems((prev) => [
+          ...prev,
+          { url: result.secure_url, deleteToken: result.delete_token ?? null },
+        ])
+      }
+      setError(null)
+    } catch (uploadError) {
+      setError(uploadError instanceof Error ? uploadError.message : '上傳失敗，請稍後再試。')
+    } finally {
+      if (galleryInputRef.current) {
+        galleryInputRef.current.value = ''
+      }
+    }
+  }
+
+  const removeGalleryItem = (index: number) => {
+    setGalleryItems((prev) => prev.filter((_, idx) => idx !== index))
+  }
+
+  const galleryTextareaValue = useMemo(
+    () => galleryItems.map((item) => item.url).join('\n'),
+    [galleryItems],
+  )
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
@@ -137,7 +276,7 @@ export const AdminProjectFormPage = () => {
     }
 
     if (!form.slug.trim()) {
-      setError('Slug 為必填欄位，請輸入英數字與連字符。')
+      setError('Slug 為必填欄位，請輸入英數字或連字符。')
       return
     }
 
@@ -145,14 +284,15 @@ export const AdminProjectFormPage = () => {
     setError(null)
     setSuccess(null)
 
-    const highlights = form.highlights
-      .split('\n')
-      .map((item) => item.trim())
+    const galleryUrls = galleryItems
+      .map((item) => item.url.trim())
       .filter(Boolean)
 
-    const gallery = form.gallery
+    const galleryDeleteTokens = galleryItems.map((item) => item.deleteToken ?? null)
+
+    const highlights = form.highlightsText
       .split('\n')
-      .map((item) => item.trim())
+      .map((line) => line.trim())
       .filter(Boolean)
 
     const payload = {
@@ -166,8 +306,10 @@ export const AdminProjectFormPage = () => {
       price_range: form.priceRange.trim(),
       description: form.description.trim(),
       highlights,
-      hero_image: form.heroImage.trim(),
-      gallery,
+      hero_image: hero.url.trim(),
+      hero_image_delete_token: hero.deleteToken ?? null,
+      gallery: galleryUrls,
+      gallery_delete_tokens: galleryDeleteTokens,
       contact_phone: form.contactPhone.trim(),
       address: form.address.trim(),
       launch_date: form.launchDate.trim(),
@@ -241,7 +383,7 @@ export const AdminProjectFormPage = () => {
                   type="text"
                   required
                   value={form.name}
-                  onChange={(event) => handleChange('name')(event.target.value)}
+                  onChange={(event) => handleFieldChange('name')(event.target.value)}
                   className="rounded-xl border border-input bg-secondary/20 px-4 py-3 text-sm text-foreground shadow-sm transition focus:border-primary focus:outline-none focus:ring focus:ring-primary/20"
                 />
               </label>
@@ -251,7 +393,7 @@ export const AdminProjectFormPage = () => {
                   type="text"
                   required
                   value={form.slug}
-                  onChange={(event) => handleChange('slug')(event.target.value)}
+                  onChange={(event) => handleFieldChange('slug')(event.target.value)}
                   disabled={isEditMode}
                   className="rounded-xl border border-input bg-secondary/20 px-4 py-3 text-sm text-foreground shadow-sm transition focus:border-primary focus:outline-none focus:ring focus:ring-primary/20 disabled:cursor-not-allowed disabled:opacity-70"
                 />
@@ -261,7 +403,7 @@ export const AdminProjectFormPage = () => {
                 <input
                   type="text"
                   value={form.location}
-                  onChange={(event) => handleChange('location')(event.target.value)}
+                  onChange={(event) => handleFieldChange('location')(event.target.value)}
                   className="rounded-xl border border-input bg-secondary/20 px-4 py-3 text-sm text-foreground shadow-sm transition focus:border-primary focus:outline-none focus:ring focus:ring-primary/20"
                 />
               </label>
@@ -269,7 +411,7 @@ export const AdminProjectFormPage = () => {
                 建案狀態
                 <select
                   value={form.status}
-                  onChange={(event) => handleChange('status')(event.target.value)}
+                  onChange={(event) => handleFieldChange('status')(event.target.value)}
                   className="rounded-xl border border-input bg-secondary/20 px-4 py-3 text-sm text-foreground focus:border-primary focus:outline-none focus:ring focus:ring-primary/20"
                 >
                   {statusOptions.map((option) => (
@@ -284,7 +426,7 @@ export const AdminProjectFormPage = () => {
                 <input
                   type="text"
                   value={form.headline}
-                  onChange={(event) => handleChange('headline')(event.target.value)}
+                  onChange={(event) => handleFieldChange('headline')(event.target.value)}
                   className="rounded-xl border border-input bg-secondary/20 px-4 py-3 text-sm text-foreground shadow-sm transition focus:border-primary focus:outline-none focus:ring focus:ring-primary/20"
                 />
               </label>
@@ -293,7 +435,7 @@ export const AdminProjectFormPage = () => {
                 <input
                   type="text"
                   value={form.areaRange}
-                  onChange={(event) => handleChange('areaRange')(event.target.value)}
+                  onChange={(event) => handleFieldChange('areaRange')(event.target.value)}
                   className="rounded-xl border border-input bg-secondary/20 px-4 py-3 text-sm text-foreground shadow-sm transition focus:border-primary focus:outline-none focus:ring focus:ring-primary/20"
                 />
               </label>
@@ -302,7 +444,7 @@ export const AdminProjectFormPage = () => {
                 <input
                   type="text"
                   value={form.unitType}
-                  onChange={(event) => handleChange('unitType')(event.target.value)}
+                  onChange={(event) => handleFieldChange('unitType')(event.target.value)}
                   className="rounded-xl border border-input bg-secondary/20 px-4 py-3 text-sm text-foreground shadow-sm transition focus:border-primary focus:outline-none focus:ring focus:ring-primary/20"
                 />
               </label>
@@ -311,7 +453,7 @@ export const AdminProjectFormPage = () => {
                 <input
                   type="text"
                   value={form.priceRange}
-                  onChange={(event) => handleChange('priceRange')(event.target.value)}
+                  onChange={(event) => handleFieldChange('priceRange')(event.target.value)}
                   className="rounded-xl border border-input bg-secondary/20 px-4 py-3 text-sm text-foreground shadow-sm transition focus:border-primary focus:outline-none focus:ring focus:ring-primary/20"
                 />
               </label>
@@ -320,7 +462,7 @@ export const AdminProjectFormPage = () => {
                 <input
                   type="text"
                   value={form.launchDate}
-                  onChange={(event) => handleChange('launchDate')(event.target.value)}
+                  onChange={(event) => handleFieldChange('launchDate')(event.target.value)}
                   className="rounded-xl border border-input bg-secondary/20 px-4 py-3 text-sm text-foreground shadow-sm transition focus:border-primary focus:outline-none focus:ring focus:ring-primary/20"
                 />
               </label>
@@ -329,44 +471,139 @@ export const AdminProjectFormPage = () => {
 
           <section className="space-y-6 rounded-3xl border border-border bg-background p-6">
             <h2 className="text-lg font-semibold text-foreground">文案與媒體</h2>
+
             <label className="flex flex-col gap-2 text-sm text-muted-foreground">
               建案介紹
               <textarea
                 rows={4}
                 value={form.description}
-                onChange={(event) => handleChange('description')(event.target.value)}
+                onChange={(event) => handleFieldChange('description')(event.target.value)}
                 className="rounded-xl border border-input bg-secondary/20 px-4 py-3 text-sm text-foreground shadow-sm transition focus:border-primary focus:outline-none focus:ring focus:ring-primary/20"
               />
             </label>
+
             <label className="flex flex-col gap-2 text-sm text-muted-foreground">
               亮點（每行一項）
               <textarea
                 rows={4}
-                value={form.highlights}
-                onChange={(event) => handleChange('highlights')(event.target.value)}
+                value={form.highlightsText}
+                onChange={(event) => handleFieldChange('highlightsText')(event.target.value)}
                 placeholder="每行一個亮點，例如：&#10;三面採光 + 270° 市景&#10;義大利 SCIC 客製廚具"
                 className="rounded-xl border border-input bg-secondary/20 px-4 py-3 text-sm text-foreground shadow-sm transition focus:border-primary focus:outline-none focus:ring focus:ring-primary/20"
               />
             </label>
-            <label className="flex flex-col gap-2 text-sm text-muted-foreground">
-              相簿圖片 URL（每行一個）
-              <textarea
-                rows={4}
-                value={form.gallery}
-                onChange={(event) => handleChange('gallery')(event.target.value)}
-                placeholder="https://...jpg"
-                className="rounded-xl border border-input bg-secondary/20 px-4 py-3 text-sm text-foreground shadow-sm transition focus:border-primary focus:outline-none focus:ring focus:ring-primary/20"
-              />
-            </label>
-            <label className="flex flex-col gap-2 text-sm text-muted-foreground">
-              Hero 圖片 URL
+
+            <div className="space-y-3 rounded-2xl border border-border bg-secondary/40 p-4">
+              <div className="flex items-center justify-between gap-3">
+                <div>
+                  <p className="text-sm font-semibold text-foreground">Hero 圖片</p>
+                  <p className="text-xs text-muted-foreground">
+                    可直接貼入 URL，或上傳後自動填入。設定圖片名稱可方便於 Cloudinary 追蹤。
+                  </p>
+                </div>
+                <label className="inline-flex cursor-pointer items-center rounded-full border border-border px-3 py-1 text-xs text-muted-foreground transition hover:border-primary hover:text-primary">
+                  上傳圖片
+                  <input
+                    ref={heroInputRef}
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={handleHeroUpload}
+                  />
+                </label>
+              </div>
+              <label className="flex flex-col gap-2 text-xs text-muted-foreground">
+                Hero 圖片名稱（選填，用於 Cloudinary public id）
+                <input
+                  type="text"
+                  value={heroImageName}
+                  onChange={(event) => setHeroImageName(event.target.value)}
+                  placeholder="例：emerald-hero"
+                  className="rounded-xl border border-input bg-secondary/20 px-3 py-2 text-xs text-foreground shadow-sm transition focus:border-primary focus:outline-none focus:ring focus:ring-primary/20"
+                />
+              </label>
+              {hero.url ? (
+                <img
+                  src={hero.url}
+                  alt="Hero"
+                  className="h-40 w-full rounded-xl object-cover"
+                />
+              ) : (
+                <div className="flex h-40 items-center justify-center rounded-xl border border-dashed border-border text-xs text-muted-foreground">
+                  尚未設定圖片
+                </div>
+              )}
               <input
                 type="url"
-                value={form.heroImage}
-                onChange={(event) => handleChange('heroImage')(event.target.value)}
+                value={hero.url}
+                onChange={(event) => handleHeroInputChange(event.target.value)}
+                placeholder="https://..."
                 className="rounded-xl border border-input bg-secondary/20 px-4 py-3 text-sm text-foreground shadow-sm transition focus:border-primary focus:outline-none focus:ring focus:ring-primary/20"
               />
-            </label>
+            </div>
+
+            <div className="space-y-3 rounded-2xl border border-border bg-secondary/40 p-4">
+              <div className="flex items-center justify-between gap-3">
+                <div>
+                  <p className="text-sm font-semibold text-foreground">相簿圖片</p>
+                  <p className="text-xs text-muted-foreground">
+                    上傳圖片後會自動加入列表，也可直接貼入 URL。設定基底名稱會依序產生 public id。
+                  </p>
+                </div>
+                <label className="inline-flex cursor-pointer items-center rounded-full border border-border px-3 py-1 text-xs text-muted-foreground transition hover:border-primary hover:text-primary">
+                  上傳圖片
+                  <input
+                    ref={galleryInputRef}
+                    type="file"
+                    accept="image/*"
+                    multiple
+                    className="hidden"
+                    onChange={handleGalleryUpload}
+                  />
+                </label>
+              </div>
+              <label className="flex flex-col gap-2 text-xs text-muted-foreground">
+                相簿圖片名稱前綴（選填）
+                <input
+                  type="text"
+                  value={galleryImageBase}
+                  onChange={(event) => setGalleryImageBase(event.target.value)}
+                  placeholder="例：emerald-gallery"
+                  className="rounded-xl border border-input bg-secondary/20 px-3 py-2 text-xs text-foreground shadow-sm transition focus:border-primary focus:outline-none focus:ring focus:ring-primary/20"
+                />
+              </label>
+              <textarea
+                rows={6}
+                value={galleryTextareaValue}
+                onChange={handleGalleryTextareaChange}
+                placeholder="每行輸入一個圖片 URL"
+                className="rounded-xl border border-input bg-secondary/20 px-4 py-3 text-sm text-foreground shadow-sm transition focus:border-primary focus:outline-none focus:ring focus:ring-primary/20"
+              />
+              {galleryItems.length ? (
+                <div className="grid gap-3 md:grid-cols-2">
+                  {galleryItems.map((item, index) => (
+                    <div
+                      key={`${item.url}-${index}`}
+                      className="space-y-2 rounded-xl border border-border bg-background p-3 text-xs text-muted-foreground"
+                    >
+                      <img
+                        src={item.url}
+                        alt={`Gallery ${index + 1}`}
+                        className="h-28 w-full rounded-lg object-cover"
+                      />
+                      <p className="break-all">{item.url}</p>
+                      <button
+                        type="button"
+                        onClick={() => removeGalleryItem(index)}
+                        className="inline-flex items-center rounded-full border border-border px-2 py-1 text-[11px] text-muted-foreground transition hover:border-destructive hover:text-destructive"
+                      >
+                        移除此圖片
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              ) : null}
+            </div>
           </section>
 
           <section className="space-y-6 rounded-3xl border border-border bg-background p-6">
@@ -377,7 +614,7 @@ export const AdminProjectFormPage = () => {
                 <input
                   type="text"
                   value={form.contactPhone}
-                  onChange={(event) => handleChange('contactPhone')(event.target.value)}
+                  onChange={(event) => handleFieldChange('contactPhone')(event.target.value)}
                   className="rounded-xl border border-input bg-secondary/20 px-4 py-3 text-sm text-foreground shadow-sm transition focus:border-primary focus:outline-none focus:ring focus:ring-primary/20"
                 />
               </label>
@@ -386,7 +623,7 @@ export const AdminProjectFormPage = () => {
                 <input
                   type="text"
                   value={form.address}
-                  onChange={(event) => handleChange('address')(event.target.value)}
+                  onChange={(event) => handleFieldChange('address')(event.target.value)}
                   className="rounded-xl border border-input bg-secondary/20 px-4 py-3 text-sm text-foreground shadow-sm transition focus:border-primary focus:outline-none focus:ring focus:ring-primary/20"
                 />
               </label>
@@ -395,7 +632,7 @@ export const AdminProjectFormPage = () => {
               <input
                 type="checkbox"
                 checked={form.isFeatured}
-                onChange={(event) => handleChange('isFeatured')(event.target.checked)}
+                onChange={(event) => handleFieldChange('isFeatured')(event.target.checked)}
                 className="h-4 w-4 rounded border-border text-primary focus:ring-primary/40"
               />
               設為精選建案（顯示於首頁精選卡片）

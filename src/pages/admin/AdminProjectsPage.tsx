@@ -4,6 +4,30 @@ import { Link, useNavigate } from 'react-router-dom'
 import { mapProject, type Project, type ProjectRow } from '@/data/projects'
 import { isSupabaseConfigured, supabase } from '@/lib/supabaseClient'
 
+const cloudName = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME as string | undefined
+
+const deleteCloudinaryAssets = async (tokens: (string | null | undefined)[]) => {
+  if (!cloudName) {
+    return
+  }
+
+  const validTokens = tokens.filter((token): token is string => Boolean(token))
+  await Promise.all(
+    validTokens.map(async (token) => {
+      const form = new FormData()
+      form.append('token', token)
+      try {
+        await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/delete_by_token`, {
+          method: 'POST',
+          body: form,
+        })
+      } catch {
+        // 若刪除失敗（token 已使用或過期），忽略即可。
+      }
+    }),
+  )
+}
+
 export const AdminProjectsPage = () => {
   const navigate = useNavigate()
   const [projects, setProjects] = useState<Project[]>([])
@@ -43,12 +67,23 @@ export const AdminProjectsPage = () => {
       return
     }
 
+    const target = projects.find((project) => project.slug === slug)
     const confirmed = window.confirm('確定要刪除這個建案嗎？此操作無法復原。')
     if (!confirmed) {
       return
     }
 
     setSaving(true)
+    setError(null)
+
+    if (target) {
+      const tokens = [
+        target.heroImageDeleteToken,
+        ...(target.galleryDeleteTokens ?? []),
+      ]
+      await deleteCloudinaryAssets(tokens)
+    }
+
     const { error: deleteError } = await supabase.from('projects').delete().eq('slug', slug)
 
     if (deleteError) {

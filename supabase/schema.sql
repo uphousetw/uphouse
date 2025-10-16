@@ -109,6 +109,12 @@ create table if not exists public.projects (
 alter table public.projects
   add column if not exists is_featured boolean default false;
 
+alter table public.projects
+  add column if not exists hero_image_delete_token text;
+
+alter table public.projects
+  add column if not exists gallery_delete_tokens text[];
+
 create index if not exists projects_slug_idx on public.projects (slug);
 create index if not exists projects_is_featured_idx on public.projects (is_featured) where is_featured = true;
 

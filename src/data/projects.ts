@@ -1,4 +1,4 @@
-export type ProjectStatus = 'é å”®' | 'æ–½å·¥ä¸­' | 'å·²å®Œå·¥'
+export type ProjectStatus = "¹w°â" | "¬I¤u¤¤" | "¤w§¹¤u"
 
 export interface Project {
   id?: string
@@ -18,6 +18,8 @@ export interface Project {
   address: string
   launchDate: string
   isFeatured: boolean
+  heroImageDeleteToken?: string | null
+  galleryDeleteTokens?: string[]
 }
 
 export interface ProjectRow {
@@ -38,10 +40,12 @@ export interface ProjectRow {
   address: string | null
   launch_date: string | null
   is_featured: boolean | null
+  hero_image_delete_token: string | null
+  gallery_delete_tokens: string[] | null
   created_at: string
 }
 
-const fallbackText = 'è³‡è¨Šå¾…æ›´æ–°'
+const fallbackText = '¸ê°T«İ§ó·s'
 
 export const mapProject = (row: ProjectRow): Project => ({
   id: row.id,
@@ -61,25 +65,27 @@ export const mapProject = (row: ProjectRow): Project => ({
   address: row.address ?? fallbackText,
   launchDate: row.launch_date ?? fallbackText,
   isFeatured: row.is_featured ?? false,
+  heroImageDeleteToken: row.hero_image_delete_token,
+  galleryDeleteTokens: row.gallery_delete_tokens ?? [],
 })
 
 export const sampleProjects: Project[] = [
   {
     slug: 'emerald-lane',
-    name: 'ç¢ç¿ å¤§é“',
-    headline: 'ä¿¡ç¾©å—è»¸ 28 å±¤ç’°æ™¯åˆ¶éœ‡å®…',
-    location: 'å°åŒ—å¸‚ä¿¡ç¾©å€å³èˆˆè¡— 88 è™Ÿ',
-    status: 'é å”®',
-    areaRange: '32-58 åª',
-    unitType: '2-4 æˆ¿',
-    priceRange: 'æ¯åª 120 - 150 è¬',
+    name: 'µZ»A¤j¹D',
+    headline: '«H¸q«n¶b 28 ¼hÀô´º¨î¾_¦v',
+    location: '¥x¥_¥««H¸q°Ï§d¿³µó 88 ¸¹',
+    status: '¹w°â',
+    areaRange: '32-58 ©W',
+    unitType: '2-4 ©Ğ',
+    priceRange: '¨C©W 120 - 150 ¸U',
     description:
-      'ç¢ç¿ å¤§é“ä»¥æ°¸çºŒå»ºç¯‰ç‚ºæ ¸å¿ƒï¼Œæ¡ç”¨ Low-E ç»ç’ƒèˆ‡ç¯€èƒ½å¤–æ®¼è¨­è¨ˆï¼Œçµåˆ 28 æ¨“æ™¯è§€æœƒæ‰€èˆ‡ç©ºä¸­èŠ±åœ’ï¼Œæ‰“é€ ä¿¡ç¾©å—è»¸æ–°åœ°æ¨™ã€‚',
+      'µZ»A¤j¹D¥H¥ÃÄò«Ø¿v¬°®Ö¤ß¡A±Ä¥Î Low-E ¬Á¼ş»P¸`¯à¥~´ß³]­p¡Aµ²¦X 28 ¼Ó´ºÆ[·|©Ò»PªÅ¤¤ªá¶é¡A¥´³y«H¸q«n¶b·s¦a¼Ğ¡C',
     highlights: [
-      'ä¸‰é¢æ¡å…‰ + 270Â° å¸‚æ™¯',
-      'ç¾©å¤§åˆ© SCIC å®¢è£½å»šå…·',
-      'B1-B3 é›™å‘å¹³é¢è»Šé“',
-      'å…¨æ£Ÿ AI æ™ºæ…§å®‰é˜²ç³»çµ±',
+      '¤T­±±Ä¥ú + 270¢X ¥«´º',
+      '¸q¤j§Q SCIC «È»s¼p¨ã',
+      'B1-B3 Âù¦V¥­­±¨®¹D',
+      '¥ş´É AI ´¼¼z¦w¨¾¨t²Î',
     ],
     heroImage:
       'https://images.unsplash.com/photo-1505691938895-1758d7feb511?auto=format&fit=crop&w=1600&q=80',
@@ -89,26 +95,28 @@ export const sampleProjects: Project[] = [
       'https://images.unsplash.com/photo-1505691723518-36a5ac3be353?auto=format&fit=crop&w=1080&q=80',
     ],
     contactPhone: '(02) 2345-8765',
-    address: 'å°åŒ—å¸‚ä¿¡ç¾©å€ä¿¡ç¾©è·¯äº”æ®µ 150 è™Ÿ',
+    address: '¥x¥_¥««H¸q°Ï«H¸q¸ô¤­¬q 150 ¸¹',
     launchDate: '2025 Q2',
     isFeatured: true,
+    heroImageDeleteToken: null,
+    galleryDeleteTokens: [],
   },
   {
     slug: 'forest-harbor',
-    name: 'æ£®åŒ¯æ¸¯ç£',
-    headline: 'æ—å£ A7 ä¸­å¿ƒ 68% ç¶ è¦†ç‡å…±æ„Ÿç¤¾å€',
-    location: 'æ–°åŒ—å¸‚æ—å£å€æ–‡åŒ–ä¸€è·¯ä¸‰æ®µ',
-    status: 'æ–½å·¥ä¸­',
-    areaRange: '28-46 åª',
-    unitType: '2-3 æˆ¿',
-    priceRange: 'æ¯åª 52 - 68 è¬',
+    name: '´Ë¶×´äÆW',
+    headline: 'ªL¤f A7 ¤¤¤ß 68% ºñÂĞ²v¦@·PªÀ°Ï',
+    location: '·s¥_¥«ªL¤f°Ï¤å¤Æ¤@¸ô¤T¬q',
+    status: '¬I¤u¤¤',
+    areaRange: '28-46 ©W',
+    unitType: '2-3 ©Ğ',
+    priceRange: '¨C©W 52 - 68 ¸U',
     description:
-      'æ£®åŒ¯æ¸¯ç£ä»¥æ£®æ—ç³»æ™¯è§€ä¸­åº­ä¸²è¯å…¬å…±è¨­æ–½ï¼Œå°å…¥è‹±åœ‹ BREEAM æ°¸çºŒèªè­‰é¡§å•ï¼Œæ‰“é€ ä½ç¢³ç¯€èƒ½ã€å…±äº«å…±æ„Ÿçš„ç¤¾å€ç”Ÿæ´»ã€‚',
+      '´Ë¶×´äÆW¥H´ËªL¨t´ºÆ[¤¤®x¦êÁp¤½¦@³]¬I¡A¾É¤J­^°ê BREEAM ¥ÃÄò»{ÃÒÅU°İ¡A¥´³y§CºÒ¸`¯à¡B¦@¨É¦@·PªºªÀ°Ï¥Í¬¡¡C',
     highlights: [
-      '740 åªæ£®æ´»ä¸­åº­',
-      '24 å°æ™‚ AI é–€ç¦å·¡æª¢',
-      'Sky Lounge é›™å±¤æŒ‘é«˜',
-      'æ­¥è¡Œ 6 åˆ†é˜æŠµé”æ©Ÿæ· A7',
+      '740 ©W´Ë¬¡¤¤®x',
+      '24 ¤p®É AI ªù¸T¨µÀË',
+      'Sky Lounge Âù¼h¬D°ª',
+      '¨B¦æ 6 ¤ÀÄÁ©è¹F¾÷±¶ A7',
     ],
     heroImage:
       'https://images.unsplash.com/photo-1487956382158-bb926046304a?auto=format&fit=crop&w=1600&q=80',
@@ -118,26 +126,28 @@ export const sampleProjects: Project[] = [
       'https://images.unsplash.com/photo-1503387762-592deb58ef4e?auto=format&fit=crop&w=1080&q=80',
     ],
     contactPhone: '(02) 2987-1122',
-    address: 'æ–°åŒ—å¸‚æ—å£å€ä»æ„›è·¯ 88 è™Ÿ',
+    address: '·s¥_¥«ªL¤f°Ï¤¯·R¸ô 88 ¸¹',
     launchDate: '2024 Q4',
     isFeatured: true,
+    heroImageDeleteToken: null,
+    galleryDeleteTokens: [],
   },
   {
     slug: 'harborline',
-    name: 'æ¾„æµ·ç•Œ',
-    headline: 'æ·¡æµ·æ–°å¸‚é®æ¿±æµ·ç”Ÿæ´»åˆ¶éœ‡åœ°æ¨™',
-    location: 'æ–°åŒ—å¸‚æ·¡æ°´å€æ¿±æµ·è·¯äºŒæ®µ',
-    status: 'å·²å®Œå·¥',
-    areaRange: '35-72 åª',
-    unitType: '3-5 æˆ¿',
-    priceRange: 'æ¯åª 45 - 55 è¬',
+    name: '¼á®ü¬É',
+    headline: '²H®ü·s¥«ÂíÀØ®ü¥Í¬¡¨î¾_¦a¼Ğ',
+    location: '·s¥_¥«²H¤ô°ÏÀØ®ü¸ô¤G¬q',
+    status: '¤w§¹¤u',
+    areaRange: '35-72 ©W',
+    unitType: '3-5 ©Ğ',
+    priceRange: '¨C©W 45 - 55 ¸U',
     description:
-      'æ¾„æµ·ç•Œä»¥æµ·æ™¯ç¬¬ä¸€æ’è¦–é‡èˆ‡ 360Â° ç’°æ™¯ç»ç’ƒæ‰“é€ åŒ—æµ·å²¸æœ€å…·è¾¨è­˜åº¦çš„å»ºç¯‰é‡é«”ï¼Œçµåˆé£¯åº—å¼ç®¡ç†èˆ‡é«˜è¦æ ¼åˆ¶éœ‡çµæ§‹ã€‚',
+      '¼á®ü¬É¥H®ü´º²Ä¤@±Æµø³¥»P 360¢X Àô´º¬Á¼ş¥´³y¥_®ü©¤³Ì¨ã¿ëÃÑ«×ªº«Ø¿v¶qÅé¡Aµ²¦X¶º©±¦¡ºŞ²z»P°ª³W®æ¨î¾_µ²ºc¡C',
     highlights: [
-      'é«˜éµç´šåˆ¶éœ‡é˜»å°¼',
-      'ä¸‰ä»£åŒå ‚è¤‡åˆå¼æ ¼å±€',
-      'ä¸€å±¤å…©æˆ¶é›™é›»æ¢¯',
-      'äº”æ˜Ÿç´šé£¯åº—å¼ç®¡ç†',
+      '°ªÅK¯Å¨î¾_ªı¥§',
+      '¤T¥N¦P°ó½Æ¦X¦¡®æ§½',
+      '¤@¼h¨â¤áÂù¹q±è',
+      '¤­¬P¯Å¶º©±¦¡ºŞ²z',
     ],
     heroImage:
       'https://images.unsplash.com/photo-1496302662116-35cc4f36df92?auto=format&fit=crop&w=1600&q=80',
@@ -147,9 +157,11 @@ export const sampleProjects: Project[] = [
       'https://images.unsplash.com/photo-1501183007986-d0d080b147f9?auto=format&fit=crop&w=1080&q=80',
     ],
     contactPhone: '(02) 2626-5566',
-    address: 'æ–°åŒ—å¸‚æ·¡æ°´å€ä¸­æ­£æ±è·¯ä¸€æ®µ 26 è™Ÿ',
+    address: '·s¥_¥«²H¤ô°Ï¤¤¥¿ªF¸ô¤@¬q 26 ¸¹',
     launchDate: '2023 Q3',
     isFeatured: false,
+    heroImageDeleteToken: null,
+    galleryDeleteTokens: [],
   },
 ]
 
