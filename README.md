@@ -15,7 +15,10 @@ React + Vite + Tailwind CSS front-end for Uphouse Construction. All content is d
 ## Features
 - **Public site**: Home, About, Projects list, Project detail, Contact page.
 - **Contact form**: Stores submissions in Supabase `leads`.
-- **Admin (Supabase Auth)**:
+- **Admin area (powered by Supabase Auth)**:
+  - Secure authentication using **Supabase Auth** with email/password login (no third-party auth providers like Clerk).
+  - Role-based access control (admin and editor roles) stored in `public.profiles` table.
+  - User ID consistency: `auth.users.id` is referenced as `profiles.user_id` with `on delete cascade`.
   - Dashboard with project and lead metrics.
   - Project CRUD with inline Cloudinary uploads for hero and gallery images (URLs auto-filled and delete tokens stored).
   - Password reset trigger (emails sent via Supabase Auth).
@@ -52,25 +55,131 @@ APP_URL=http://localhost:5173
 Cloudinary must have an **unsigned upload preset** that allows specifying folder/public_id. Supabase reset redirect must be whitelisted in Dashboard → Authentication → URL allow list.
 
 ## Supabase Setup
-1. In Supabase SQL Editor execute:
-   - `supabase/schema.sql` – tables (`projects`, `leads`, `profiles`), RLS, triggers, delete-token columns.
-   - `supabase/seed_projects.sql` – optional starter project data.
-2. Create admin user in Supabase Auth (Dashboard → Users → Add user).
-3. Promote to admin:
+
+This project uses **Supabase Auth** for authentication (not Clerk or other third-party providers). The authentication system connects user IDs across tables to ensure proper admin access.
+
+### 1. Database Setup
+
+Execute the schema in Supabase SQL Editor:
+
+```bash
+# Run the schema file that creates all tables, RLS policies, and triggers
+supabase/schema.sql
+```
+
+This creates:
+- **`auth.users`** – Supabase Auth's built-in user table (managed by Supabase)
+- **`public.profiles`** – User profile table with role-based access control
+  - `user_id uuid primary key references auth.users on delete cascade`
+  - `role` (admin or editor)
+  - Automatically created via `handle_new_user()` trigger when a user signs up
+- **`public.projects`** – Project data with RLS policies checking `is_admin_or_editor()`
+- **`public.leads`** – Contact form submissions with RLS policies checking `is_admin()`
+
+### 2. How User IDs Connect Across Tables
+
+The authentication system maintains ID consistency:
+
+```
+auth.users.id (UUID) ←── references ─── public.profiles.user_id (UUID)
+                                              ↓
+                                    Used by auth.uid() in RLS policies
+```
+
+- When a user signs up in `auth.users`, the `on_auth_user_created` trigger automatically creates a matching row in `public.profiles` with `user_id = auth.users.id`
+- RLS policies use `auth.uid()` to get the current user's ID and check it against `profiles.user_id`
+- The `on delete cascade` ensures profiles are deleted when auth users are deleted
+
+### 3. Create Your First Admin User
+
+1. **Create user in Supabase Auth**:
+   - Go to Authentication → Users in Supabase Dashboard
+   - Click "Add user" → "Create new user"
+   - Enter email and password
+   - Copy the user's UUID
+
+2. **Promote user to admin role**:
    ```sql
-   update public.profiles set role = 'admin' where user_id = '<USER_UUID>';
+   -- Replace <USER_UUID> with the UUID from step 1
+   update public.profiles
+   set role = 'admin'
+   where user_id = '<USER_UUID>';
    ```
-4. Update `.env.local`, then `npm install` and `npm run dev`.
+
+3. **Verify the setup**:
+   ```sql
+   -- Check that the profile exists and has admin role
+   select user_id, role, full_name
+   from public.profiles
+   where role = 'admin';
+   ```
+
+### 4. Environment Variables
+
+Update `.env.local` with your Supabase credentials:
+
+```env
+VITE_SUPABASE_URL=<Your Supabase Project URL>
+VITE_SUPABASE_ANON_KEY=<Your Supabase anon key>
+```
+
+Then run:
+```bash
+npm install
+npm run dev
+```
+
+### 5. Test Admin Login
+
+- Navigate to `http://localhost:5173/admin/login`
+- Log in with the admin email/password you created
+- You should be redirected to `/admin` dashboard with full access
 
 ## Admin Workflow
-- Login: `/admin/login`.
-- Dashboard: `/admin` (any authenticated user).
-- Projects: `/admin/projects` → create (`/new`), edit (`/:slug/edit`), delete (auto-cleans Cloudinary images via stored delete tokens).
-- Password reset: `/admin/settings` – send Supabase password-reset email.
-- Leads: `/admin/leads` – view/delete contact submissions.
-- Roles:
-  - `editor` – dashboard + project management.
-  - `admin` – full access (project uploads, settings, leads).
+
+### Authentication Flow
+1. **Login**: Navigate to `/admin/login`
+2. **Sign in with Supabase Auth**: Enter email and password
+3. **Session management**:
+   - `AuthProvider` checks `auth.uid()` and fetches matching profile from `public.profiles`
+   - Session persists via Supabase Auth tokens (JWT)
+   - `RequireAuth` component protects admin routes
+
+### Admin Pages
+- **Login**: `/admin/login` - Email/password authentication via Supabase Auth
+- **Dashboard**: `/admin` - Available to all authenticated users (editor and admin)
+- **Projects**: `/admin/projects`
+  - Create (`/new`), edit (`/:slug/edit`), delete
+  - Auto-cleans Cloudinary images via stored delete tokens
+  - Protected by `is_admin_or_editor()` RLS policy
+- **Password reset**: `/admin/settings` - Trigger Supabase password-reset email
+- **Leads**: `/admin/leads` - View/delete contact submissions (admin only)
+
+### Role-Based Access
+- **`editor`** role:
+  - Access dashboard
+  - Full project management (CRUD operations)
+- **`admin`** role:
+  - All editor permissions
+  - Plus: settings access, lead management, and additional admin features
+
+### How Roles Work with RLS
+The `public.profiles` table stores user roles, and RLS policies enforce permissions:
+```sql
+-- Helper function checks if current user is admin
+create function public.is_admin() returns boolean as $$
+  select exists (
+    select 1 from public.profiles
+    where user_id = auth.uid() and role = 'admin'
+  );
+$$;
+
+-- Projects table uses this in RLS policy
+create policy "Admins manage projects"
+  on public.projects
+  for all
+  using (public.is_admin_or_editor());
+```
 
 ## Deployment (Cloudflare Pages)
 1. Push repo to Git (e.g., GitHub).
