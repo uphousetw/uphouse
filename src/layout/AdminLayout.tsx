@@ -5,6 +5,7 @@ import { useAuth } from '@/providers/AuthProvider'
 const adminNav = [
   { label: '儀表板', to: '/admin' },
   { label: '建案管理', to: '/admin/projects' },
+  { label: '關於我們', to: '/admin/about', role: 'admin' },
   { label: '帳號設定', to: '/admin/settings', role: 'admin' },
   { label: '潛在客戶', to: '/admin/leads', role: 'admin' },
 ]

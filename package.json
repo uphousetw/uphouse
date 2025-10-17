@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "test:admin-about": "npx tsx scripts/test-admin-about.ts"
   },
   "engines": {
     "node": ">=18.0.0",

@@ -8,6 +8,7 @@ import { ContactPage } from './pages/ContactPage'
 import { HomePage } from './pages/HomePage'
 import { ProjectDetailPage } from './pages/ProjectDetailPage'
 import { ProjectsPage } from './pages/ProjectsPage'
+import { AdminAboutPage } from './pages/admin/AdminAboutPage'
 import { AdminDashboard } from './pages/admin/AdminDashboard'
 import { AdminLeadsPage } from './pages/admin/AdminLeadsPage'
 import { AdminLoginPage } from './pages/admin/AdminLoginPage'
@@ -40,6 +41,14 @@ export const router = createBrowserRouter([
       { path: 'projects', element: <AdminProjectsPage /> },
       { path: 'projects/new', element: <AdminProjectFormPage /> },
       { path: 'projects/:slug/edit', element: <AdminProjectFormPage /> },
+      {
+        path: 'about',
+        element: (
+          <RequireAuth role="admin">
+            <AdminAboutPage />
+          </RequireAuth>
+        ),
+      },
       {
         path: 'settings',
         element: (
