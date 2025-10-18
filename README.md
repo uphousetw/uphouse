@@ -59,10 +59,53 @@ Cloudinary must have an **unsigned upload preset** that allows specifying folder
 
 This project uses **Supabase Auth** for authentication (not Clerk or other third-party providers). The authentication system connects user IDs across tables to ensure proper admin access.
 
-### 1. Database Setup
+### 1. Database Schema Management
 
-Execute the schema in Supabase SQL Editor:
+**Important:** This project uses a **monolithic schema approach** for database management:
 
+- **Single source of truth**: All database schema is defined in `supabase/schema.sql`
+- **No migrations folder**: The `supabase/migrations/` folder is NOT used for this project
+- **How to add new tables/features**: Edit `supabase/schema.sql` directly and re-run the entire file
+- **Why this approach**: Simpler for small teams, faster local development, no version tracking needed
+
+**When adding new tables/features:**
+1. Edit `supabase/schema.sql` to add new tables, policies, or functions
+2. Use `create table if not exists` and `drop policy if exists` patterns to make the script idempotent
+3. DO NOT add INSERT statements in schema.sql (that's data, not structure)
+4. Run the entire schema file in Supabase SQL Editor or via CLI
+
+**When adding default/seed data:**
+1. Add INSERT statements to `supabase/seed.sql` (keep all seed data in ONE file)
+2. Use `on conflict` clauses to make inserts safe to re-run
+3. Add comments to organize different table sections
+4. Run seed.sql AFTER schema.sql
+
+**SQL Files in this project:**
+
+**Schema (Structure Only):**
+- `schema.sql` - **Main schema file** - tables, policies, functions, triggers (NO data)
+
+**Seed Data (Initial Content):**
+- `seed.sql` - **All seed/sample data** for projects and about_page tables
+
+**Diagnostic/Testing:**
+- `verify-all-policies.sql` - Check all RLS policies and grants
+- `test-profile-access.sql` - Verify profile access works correctly
+
+**Not Used:**
+- `migrations/` folder - **NOT USED** (empty, documented for reference)
+
+**Important Principle:**
+- Schema files contain ONLY structure (tables, indexes, policies, functions)
+- Seed files contain ONLY data (INSERT statements)
+- This separation makes it easier to update structure without affecting data
+- All seed data is consolidated in ONE file for simplicity
+
+### 2. Database Setup
+
+Execute the SQL files in Supabase SQL Editor in this order:
+
+**Step 1: Create Schema (Required)**
 ```bash
 # Run the schema file that creates all tables, RLS policies, and triggers
 supabase/schema.sql
@@ -76,8 +119,17 @@ This creates:
   - Automatically created via `handle_new_user()` trigger when a user signs up
 - **`public.projects`** – Project data with RLS policies checking `is_admin_or_editor()`
 - **`public.leads`** – Contact form submissions with RLS policies checking `is_admin()`
+- **`public.about_page`** – About page content management with admin-only editing
 
-### 2. How User IDs Connect Across Tables
+**Step 2: Add Seed Data (Optional)**
+```bash
+# Add all sample data (projects + about_page content)
+supabase/seed.sql
+```
+
+Note: Seed data is safe to re-run (uses `on conflict` clauses to avoid duplicates). You can skip this in production and add content via the admin panel instead.
+
+### 3. How User IDs Connect Across Tables
 
 The authentication system maintains ID consistency:
 
@@ -91,7 +143,7 @@ auth.users.id (UUID) ←── references ─── public.profiles.user_id (UUI
 - RLS policies use `auth.uid()` to get the current user's ID and check it against `profiles.user_id`
 - The `on delete cascade` ensures profiles are deleted when auth users are deleted
 
-### 3. Create Your First Admin User
+### 4. Create Your First Admin User
 
 1. **Create user in Supabase Auth**:
    - Go to Authentication → Users in Supabase Dashboard
@@ -115,7 +167,7 @@ auth.users.id (UUID) ←── references ─── public.profiles.user_id (UUI
    where role = 'admin';
    ```
 
-### 4. Environment Variables
+### 5. Environment Variables
 
 Update `.env.local` with your Supabase credentials:
 
@@ -130,7 +182,7 @@ npm install
 npm run dev
 ```
 
-### 5. Test Admin Login
+### 6. Test Admin Login
 
 - Navigate to `http://localhost:5173/admin/login`
 - Log in with the admin email/password you created
@@ -265,14 +317,16 @@ Based on Supabase's official testing on 100K row tables:
 | Specify TO authenticated | 170ms | <0.1ms | 99.94% |
 
 ### Verification Scripts
-Run these to verify and fix RLS policies:
+Run this diagnostic script to verify RLS policies and permissions:
 ```bash
-# Verify all policies and permissions
+# Verify all policies and permissions (diagnostic only, does not modify)
 supabase/verify-all-policies.sql
 
-# Fix common policy issues
-supabase/fix-policies.sql
+# Test profile access (for troubleshooting auth issues)
+supabase/test-profile-access.sql
 ```
+
+Note: All RLS best practices are already integrated into `schema.sql`. These scripts are for verification and troubleshooting only.
 
 **References:**
 - [Supabase RLS Performance Guide](https://supabase.com/docs/guides/troubleshooting/rls-performance-and-best-practices-Z5Jjwv)
