@@ -339,17 +339,99 @@ Note: All RLS best practices are already integrated into `schema.sql`. These scr
 4. Configure the environment variables listed above.
 5. Merge to main branch to trigger new deployments.
 
+## Testing
+
+This project includes comprehensive end-to-end tests using Playwright to ensure backend-frontend integration works correctly.
+
+### Test Structure
+
+```
+tests/
+├── public/              # Public-facing pages
+│   ├── home.spec.ts        - Home page display tests
+│   ├── about.spec.ts       - About page & Supabase integration
+│   ├── projects.spec.ts    - Projects list & detail pages
+│   └── contact.spec.ts     - Contact form & lead submission
+│
+├── admin/               # Admin panel (requires authentication)
+│   ├── auth.setup.ts       - Authentication setup
+│   ├── login.spec.ts       - Login functionality
+│   ├── dashboard.spec.ts   - Dashboard metrics
+│   ├── projects-crud.spec.ts - Project CRUD operations
+│   ├── leads.spec.ts       - Lead management
+│   └── about-page.spec.ts  - About page admin editor
+│
+└── integration/         # Full end-to-end flows
+    └── end-to-end.spec.ts  - Complete user journeys & RLS verification
+```
+
+### Running Tests
+
+```bash
+# Run all tests (headless)
+npm test
+
+# Run tests with UI (interactive)
+npm run test:ui
+
+# Run tests in headed mode (see browser)
+npm run test:headed
+
+# Run specific test suites
+npm run test:public          # Public pages only
+npm run test:admin           # Admin pages only
+npm run test:integration     # End-to-end flows only
+
+# View test report
+npm run test:report
+```
+
+### Test Coverage
+
+**Public Pages:**
+- ✅ Home page loads and displays content
+- ✅ About page fetches from Supabase `about_page` table
+- ✅ Projects list fetches from Supabase `projects` table
+- ✅ Project detail pages display correctly
+- ✅ Contact form submits to Supabase `leads` table
+- ✅ RLS policies allow public read access
+
+**Admin Pages:**
+- ✅ Admin authentication and authorization
+- ✅ Dashboard displays metrics from Supabase
+- ✅ Project CRUD operations (Create, Read, Update, Delete)
+- ✅ Lead management (Read, Delete)
+- ✅ About page content editor
+- ✅ RLS policies restrict admin-only operations
+
+**Integration Tests:**
+- ✅ Full flow: Admin creates project → Public views it
+- ✅ Full flow: User submits lead → Admin receives it
+- ✅ Full flow: Admin updates About → Public sees changes
+- ✅ RLS policy verification across all tables
+- ✅ Backend-frontend data synchronization
+
+### Environment Setup for Tests
+
+Tests require the following environment variables in `.env.local`:
+
+```env
+VITE_SUPABASE_URL=<Your Supabase URL>
+VITE_SUPABASE_ANON_KEY=<Your anon key>
+ADMIN_EMAIL=<Admin user email for testing>
+ADMIN_PASSWORD=<Admin user password for testing>
+APP_URL=http://localhost:5173
+```
+
+### CI/CD Integration
+
+Tests are configured to run in GitHub Actions or other CI environments. Set `CI=true` for optimized CI behavior:
+- Runs tests in parallel
+- Retries failed tests automatically
+- Generates HTML reports
+
 ## Next Steps
 1. **Media library** – list existing Cloudinary assets or integrate Supabase Storage.
 2. **Project states** – add draft/publish workflow or version history.
 3. **Lead notifications** – use Supabase Edge Functions or third-party email services; optionally add Turnstile anti-spam.
-4. **Testing/CI** – add Vitest/Playwright tests and GitHub Actions.
-5. **SEO/i18n** – expand with OG metadata, sitemap, or multilingual content.
-
----
-
-### Playwright Quick Check
-```bash
-npx tsx scripts/check-admin-access.ts
-```
-Automatically logs into `/admin/login` and prints Supabase REST responses. Requires the environment variables above.
+4. **SEO/i18n** – expand with OG metadata, sitemap, or multilingual content.

@@ -6,3 +6,11 @@ package-lock.json
 .env
 .env.*
 .env.local
+
+# Playwright
+/test-results/
+/playwright-report/
+/blob-report/
+/playwright/.auth/
+*.png
+!playwright/.gitkeep
