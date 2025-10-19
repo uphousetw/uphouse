@@ -2,6 +2,12 @@ import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 
 import {
+  defaultContactPageContent,
+  type ContactPageContent,
+  type ContactPageContentRow,
+  mapContactPageContent,
+} from '@/data/contactPage'
+import {
   defaultHomePageContent,
   type HomePageContent,
   type HomePageContentRow,
@@ -17,6 +23,7 @@ import { isSupabaseConfigured, supabase } from '@/lib/supabaseClient'
 
 export const HomePage = () => {
   const [content, setContent] = useState<HomePageContent>(defaultHomePageContent)
+  const [contactContent, setContactContent] = useState<ContactPageContent>(defaultContactPageContent)
   const [featuredProjects, setFeaturedProjects] = useState<Project[]>(
     () => (isSupabaseConfigured ? [] : sampleFeaturedProjects),
   )
@@ -35,10 +42,17 @@ export const HomePage = () => {
 
       const [
         { data: contentData, error: contentError },
+        { data: contactData, error: contactError },
         { data: projectsData, error: projectsError }
       ] = await Promise.all([
         supabase!
           .from('homepage_content')
+          .select('*')
+          .order('updated_at', { ascending: false })
+          .limit(1)
+          .maybeSingle(),
+        supabase!
+          .from('contact_page_content')
           .select('*')
           .order('updated_at', { ascending: false })
           .limit(1)
@@ -57,6 +71,10 @@ export const HomePage = () => {
 
       if (contentData) {
         setContent(mapHomePageContent(contentData))
+      }
+
+      if (contactData) {
+        setContactContent(mapContactPageContent(contactData))
       }
 
       if (projectsError) {
@@ -103,7 +121,7 @@ export const HomePage = () => {
                 to="/contact"
                 className="inline-flex items-center justify-center rounded-full border border-border px-6 py-3 text-sm font-semibold text-foreground transition hover:border-primary hover:text-primary"
               >
-                預約專屬導覽
+                聯絡我們
               </Link>
             </div>
           </div>
@@ -245,10 +263,10 @@ export const HomePage = () => {
               填寫聯絡表單
             </Link>
             <a
-              href="tel:+886212345678"
+              href={`tel:${contactContent.phoneValue.replace(/[^0-9+]/g, '')}`}
               className="inline-flex items-center justify-center rounded-full border-2 border-primary-foreground px-6 py-3 text-sm font-semibold text-primary-foreground transition hover:bg-primary-foreground hover:text-primary"
             >
-              直接來電洽詢
+              聯絡我們
             </a>
           </div>
         </div>
