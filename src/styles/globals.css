@@ -1,0 +1,69 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 52 94% 94%;
+    --foreground: 0 0% 10%;
+
+    --primary: 84 51% 15%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 90 26% 95%;
+    --secondary-foreground: 0 0% 10%;
+
+    --accent: 32 61% 61%;
+    --accent-foreground: 0 0% 10%;
+
+    --muted: 90 26% 95%;
+    --muted-foreground: 0 0% 42%;
+
+    --border: 90 22% 91%;
+    --input: 90 22% 91%;
+    --ring: 84 51% 15%;
+
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+
+    --radius: 16px;
+  }
+
+  .dark {
+    --background: 90 20% 10%;
+    --foreground: 90 16% 95%;
+
+    --primary: 90 27% 62%;
+    --primary-foreground: 0 0% 10%;
+
+    --secondary: 90 18% 15%;
+    --secondary-foreground: 90 16% 95%;
+
+    --accent: 41 77% 68%;
+    --accent-foreground: 0 0% 10%;
+
+    --muted: 90 18% 15%;
+    --muted-foreground: 90 10% 70%;
+
+    --border: 90 12% 19%;
+    --input: 90 12% 19%;
+    --ring: 90 27% 62%;
+
+    --destructive: 0 62% 50%;
+    --destructive-foreground: 0 0% 100%;
+  }
+
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground antialiased;
+    font-feature-settings: 'ss01' on, 'liga' on;
+    text-rendering: optimizeLegibility;
+  }
+
+  a {
+    @apply text-primary underline-offset-4 transition-colors hover:text-primary/80;
+  }
+}
