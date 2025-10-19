@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git init:*)",
+      "Bash(git add:*)",
+      "Bash(git checkout --ours .gitignore src/data/projects.ts src/pages/AboutPage.tsx src/pages/HomePage.tsx src/pages/ProjectDetailPage.tsx src/pages/ProjectsPage.tsx src/pages/admin/AdminAboutPage.tsx src/pages/admin/AdminDashboard.tsx src/pages/admin/AdminLeadsPage.tsx src/pages/admin/AdminProjectFormPage.tsx src/pages/admin/AdminProjectsPage.tsx src/providers/AuthProvider.tsx)",
+      "Bash(git commit -m \"Merge remote changes, keeping TypeScript fixes\")"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}
