@@ -16,6 +16,8 @@ export interface Project {
   gallery: string[]
   contactPhone: string
   address: string
+  latitude: number
+  longitude: number
   launchDate: string
   isFeatured: boolean
   heroImageDeleteToken?: string | null
@@ -38,6 +40,8 @@ export interface ProjectRow {
   gallery: string[] | null
   contact_phone: string | null
   address: string | null
+  latitude: number | null
+  longitude: number | null
   launch_date: string | null
   is_featured: boolean | null
   hero_image_delete_token: string | null
@@ -63,6 +67,8 @@ export const mapProject = (row: ProjectRow): Project => ({
   gallery: row.gallery ?? [],
   contactPhone: row.contact_phone ?? fallbackText,
   address: row.address ?? fallbackText,
+  latitude: row.latitude ?? 25.0330,
+  longitude: row.longitude ?? 121.5654,
   launchDate: row.launch_date ?? fallbackText,
   isFeatured: row.is_featured ?? false,
   heroImageDeleteToken: row.hero_image_delete_token,
@@ -96,6 +102,8 @@ export const sampleProjects: Project[] = [
     ],
     contactPhone: '(02) 2345-8765',
     address: '台北市信義區信義路五段 150 號',
+    latitude: 25.0330,
+    longitude: 121.5654,
     launchDate: '2025 Q2',
     isFeatured: true,
     heroImageDeleteToken: null,
@@ -127,6 +135,8 @@ export const sampleProjects: Project[] = [
     ],
     contactPhone: '(02) 2987-1122',
     address: '新北市林口區文明路 88 號',
+    latitude: 25.0777,
+    longitude: 121.3581,
     launchDate: '2024 Q4',
     isFeatured: true,
     heroImageDeleteToken: null,
@@ -158,6 +168,8 @@ export const sampleProjects: Project[] = [
     ],
     contactPhone: '(02) 2626-5566',
     address: '新北市淡水區中正東路一段 26 號',
+    latitude: 25.1537,
+    longitude: 121.4595,
     launchDate: '2023 Q3',
     isFeatured: false,
     heroImageDeleteToken: null,

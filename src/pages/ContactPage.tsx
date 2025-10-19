@@ -51,9 +51,9 @@ export const ContactPage = () => {
     <div className="mx-auto max-w-5xl px-4 py-16 md:px-6 lg:px-8">
       <div className="grid gap-12 rounded-3xl border border-border bg-secondary/60 p-8 md:grid-cols-[2fr_1fr]">
         <div>
-          <h1 className="text-3xl font-semibold text-foreground md:text-4xl">聯絡 Uphouse</h1>
+          <h1 className="text-3xl font-semibold text-foreground md:text-4xl">聯絡我們</h1>
           <p className="mt-4 text-base text-muted-foreground">
-            填寫表單後，我們的品牌顧問將在 48 小時內與您聯繫，提供建案導覽、客製化方案與購屋諮詢。
+            填寫表單後，我們將盡速與您聯繫
           </p>
 
           <form onSubmit={handleSubmit} className="mt-8 space-y-6">
@@ -128,7 +128,7 @@ export const ContactPage = () => {
         </div>
         <aside className="space-y-6 rounded-2xl border border-border bg-background p-6 text-sm text-muted-foreground">
           <div>
-            <h2 className="text-base font-semibold text-foreground">品牌體驗館</h2>
+            <h2 className="text-base font-semibold text-foreground">地址</h2>
             <p className="mt-2">台北市信義區松仁路 123 號 10 樓</p>
             <p>營業時間：週一至週日 10:00-20:00</p>
           </div>

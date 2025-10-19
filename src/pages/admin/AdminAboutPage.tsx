@@ -210,7 +210,7 @@ export const AdminAboutPage = () => {
                 required
                 value={form.description}
                 onChange={(event) => handleFieldChange('description')(event.target.value)}
-                placeholder="Uphouse 建設成立於 2001 年，以「讓家回歸生活本質」為信念..."
+                placeholder="向上建設成立於 2001 年，以「讓家回歸生活本質」為信念..."
                 className="rounded-xl border border-input bg-secondary/20 px-4 py-3 text-sm text-foreground shadow-sm transition focus:border-primary focus:outline-none focus:ring focus:ring-primary/20"
               />
             </label>

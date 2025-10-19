@@ -17,6 +17,8 @@ interface ProjectFormState {
   highlightsText: string
   contactPhone: string
   address: string
+  latitude: string
+  longitude: string
   launchDate: string
   isFeatured: boolean
 }
@@ -46,6 +48,8 @@ const defaultFormState: ProjectFormState = {
   highlightsText: '',
   contactPhone: '',
   address: '',
+  latitude: '',
+  longitude: '',
   launchDate: '',
   isFeatured: false,
 }
@@ -154,6 +158,8 @@ export const AdminProjectFormPage = () => {
           highlightsText: project.highlights.join('\n'),
           contactPhone: project.contactPhone,
           address: project.address,
+          latitude: project.latitude.toString(),
+          longitude: project.longitude.toString(),
           launchDate: project.launchDate,
           isFeatured: project.isFeatured,
         })
@@ -312,6 +318,8 @@ export const AdminProjectFormPage = () => {
       gallery_delete_tokens: galleryDeleteTokens,
       contact_phone: form.contactPhone.trim(),
       address: form.address.trim(),
+      latitude: form.latitude.trim() ? parseFloat(form.latitude.trim()) : null,
+      longitude: form.longitude.trim() ? parseFloat(form.longitude.trim()) : null,
       launch_date: form.launchDate.trim(),
       is_featured: form.isFeatured,
     }
@@ -626,6 +634,36 @@ export const AdminProjectFormPage = () => {
                   onChange={(event) => handleFieldChange('address')(event.target.value)}
                   className="rounded-xl border border-input bg-secondary/20 px-4 py-3 text-sm text-foreground shadow-sm transition focus:border-primary focus:outline-none focus:ring focus:ring-primary/20"
                 />
+              </label>
+            </div>
+            <div className="grid gap-4 md:grid-cols-2">
+              <label className="flex flex-col gap-2 text-sm text-muted-foreground">
+                緯度 (Latitude)
+                <input
+                  type="number"
+                  step="0.0000001"
+                  placeholder="例：25.0330"
+                  value={form.latitude}
+                  onChange={(event) => handleFieldChange('latitude')(event.target.value)}
+                  className="rounded-xl border border-input bg-secondary/20 px-4 py-3 text-sm text-foreground shadow-sm transition focus:border-primary focus:outline-none focus:ring focus:ring-primary/20"
+                />
+                <span className="text-xs text-muted-foreground">
+                  可至 <a href="https://www.google.com/maps" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">Google Maps</a> 點擊位置取得經緯度
+                </span>
+              </label>
+              <label className="flex flex-col gap-2 text-sm text-muted-foreground">
+                經度 (Longitude)
+                <input
+                  type="number"
+                  step="0.0000001"
+                  placeholder="例：121.5654"
+                  value={form.longitude}
+                  onChange={(event) => handleFieldChange('longitude')(event.target.value)}
+                  className="rounded-xl border border-input bg-secondary/20 px-4 py-3 text-sm text-foreground shadow-sm transition focus:border-primary focus:outline-none focus:ring focus:ring-primary/20"
+                />
+                <span className="text-xs text-muted-foreground">
+                  台北地區緯度約 25.0，經度約 121.5
+                </span>
               </label>
             </div>
             <label className="inline-flex items-center gap-3 text-sm text-muted-foreground">

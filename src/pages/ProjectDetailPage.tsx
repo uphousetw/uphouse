@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 
+import { MapEmbed } from '@/components/MapEmbed'
 import {
   mapProject,
   type Project,
@@ -224,6 +225,20 @@ export const ProjectDetailPage = () => {
                 />
               ))}
             </div>
+          </section>
+
+          <section className="space-y-4">
+            <h2 className="text-2xl font-semibold text-foreground">基地位置</h2>
+            <MapEmbed
+              latitude={project.latitude}
+              longitude={project.longitude}
+              address={project.address}
+              className="h-96 w-full"
+            />
+            <p className="text-sm text-muted-foreground">
+              <span className="font-semibold text-foreground">地址：</span>
+              {project.address}
+            </p>
           </section>
         </article>
 

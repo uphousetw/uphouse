@@ -23,7 +23,7 @@ export const SiteHeader = () => {
               UH
             </span>
             <span className="text-lg font-semibold tracking-tight text-foreground">
-              Uphouse 建設
+              向上建設
             </span>
           </Link>
           <nav className="hidden items-center gap-6 text-sm font-medium md:flex">

@@ -121,6 +121,12 @@ alter table public.projects
 alter table public.projects
   add column if not exists gallery_delete_tokens text[];
 
+alter table public.projects
+  add column if not exists latitude numeric(10, 7);
+
+alter table public.projects
+  add column if not exists longitude numeric(10, 7);
+
 create index if not exists projects_slug_idx on public.projects (slug);
 create index if not exists projects_is_featured_idx on public.projects (is_featured) where is_featured = true;
 

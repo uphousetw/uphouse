@@ -11,16 +11,16 @@ import { isSupabaseConfigured, supabase } from '@/lib/supabaseClient'
 
 const valuePropositions = [
   {
-    title: '永續建築',
-    description: '導入低碳建材與節能系統，取得國際綠建築認證，降低長期維運成本。',
+    title: '特選建材',
+    description: '我們選用讓住戶安心的品牌，增加住戶幸福感',
   },
   {
     title: '獨家選地',
-    description: '鎖定捷運站點 800 公尺內黃金生活圈，串聯學區、商圈與生活機能。',
+    description: '鎖定苗栗高鐵黃金生活圈，串聯學區、商圈與生活機能。',
   },
   {
     title: '客製服務',
-    description: '專屬顧問一對一導覽，提供格局微調、智能家居等客製方案建議。',
+    description: '一對一導覽，提供格局微調、智能家居等客製方案建議。',
   },
 ]
 
@@ -76,14 +76,14 @@ export const HomePage = () => {
         <div className="mx-auto grid max-w-6xl gap-12 px-4 pb-12 pt-16 md:grid-cols-2 md:px-6 lg:px-8 lg:pb-16 lg:pt-24">
           <div className="space-y-6">
             <span className="inline-flex items-center rounded-full border border-primary/20 bg-primary/10 px-4 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-primary">
-              Uphouse 建設
+              向上建設
             </span>
             <h1 className="text-4xl font-semibold leading-tight tracking-tight text-foreground sm:text-5xl">
-              打造值得信任的建築，讓家成為生活的最佳風景
+              向上建設 向下扎根
             </h1>
             <p className="text-base text-muted-foreground md:text-lg">
-              以人為本、以永續為核心，淬鍊每一處細節。從土地潛力評估、建築設計到交屋服務，
-              Uphouse 為家庭打造兼具美學、機能與安全的居住體驗。
+              打造苗栗高鐵特區質感美學
+             
             </p>
             <div className="flex flex-col gap-3 sm:flex-row">
               <Link
@@ -104,7 +104,7 @@ export const HomePage = () => {
             <div className="absolute -left-6 top-6 h-full w-full rounded-3xl border border-primary/10" />
             <img
               src="https://images.unsplash.com/photo-1493809842364-78817add7ffb?auto=format&fit=crop&w=1280&q=80"
-              alt="Uphouse 建設代表建築"
+              alt="向上建設代表建築"
               className="relative z-10 h-full w-full rounded-3xl object-cover shadow-2xl"
               loading="lazy"
             />
@@ -112,9 +112,9 @@ export const HomePage = () => {
         </div>
         <div className="mx-auto grid max-w-6xl gap-6 px-4 pb-16 md:grid-cols-3 md:px-6 lg:px-8">
           {[
-            { label: '年度交屋滿意度', value: '94%' },
-            { label: '永續認證建案', value: '12 件' },
-            { label: '專業顧問團隊', value: '30+ 人' },
+            { label: '專注', value: '100%' },
+            { label: '苗栗高鐵建案', value: '3件' },
+            { label: '工程團隊', value: '30+ 人' },
           ].map((item) => (
             <div
               key={item.label}
@@ -132,7 +132,7 @@ export const HomePage = () => {
           <div className="space-y-4">
             <h2 className="text-3xl font-semibold text-foreground">精選建案</h2>
             <p className="max-w-xl text-base text-muted-foreground">
-              精挑城市中最具潛力的地段，結合國際設計團隊與永續工法，打造兼具品質與增值性的住宅作品。
+              以苗栗為起點，創造各具風格的建築作品，讓居住的每個空間都充滿著生命力和獨特性
             </p>
           </div>
           <Link
@@ -212,7 +212,7 @@ export const HomePage = () => {
           <div className="max-w-2xl space-y-4">
             <h2 className="text-3xl font-semibold text-foreground">品牌承諾</h2>
             <p className="text-base text-muted-foreground">
-              Uphouse 相信好宅始於透明與信任。從土地評估到交屋維保，我們與住戶保持緊密溝通，確保每一位成員在社區中安心生活。
+              我們相信好宅始於透明與信任。從土地評估到交屋維保，我們與住戶保持緊密溝通，確保每一位成員在社區中安心生活。
             </p>
           </div>
           <div className="mt-10 grid gap-6 md:grid-cols-3">
@@ -229,9 +229,9 @@ export const HomePage = () => {
       <section className="mx-auto max-w-6xl px-4 md:px-6 lg:px-8">
         <div className="grid gap-10 rounded-3xl border border-border bg-primary px-8 py-12 text-primary-foreground md:grid-cols-2 md:items-center">
           <div className="space-y-4">
-            <h2 className="text-3xl font-semibold">預約專屬顧問諮詢</h2>
+            <h2 className="text-3xl font-semibold">預約諮詢</h2>
             <p className="text-base text-primary-foreground/90">
-              留下聯絡資訊，48 小時內將由 Uphouse 品牌顧問與您聯繫，安排建案導覽或客製需求諮詢。
+              請留下聯絡資訊，我們將盡速與您聯繫，安排建案導覽或客製需求服務。
             </p>
           </div>
           <div className="flex flex-col gap-3 sm:flex-row md:justify-end">
@@ -243,7 +243,7 @@ export const HomePage = () => {
             </Link>
             <a
               href="tel:+886212345678"
-              className="inline-flex items-center justify-center rounded-full border border-primary-foreground/30 px-6 py-3 text-sm font-semibold transition hover:bg-primary-foreground/10"
+              className="inline-flex items-center justify-center rounded-full border-2 border-primary-foreground px-6 py-3 text-sm font-semibold text-primary-foreground transition hover:bg-primary-foreground hover:text-primary"
             >
               直接來電洽詢
             </a>

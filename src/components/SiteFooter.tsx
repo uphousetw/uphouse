@@ -12,7 +12,7 @@ export const SiteFooter = () => {
     <footer className="border-t border-border bg-secondary">
       <div className="mx-auto flex max-w-6xl flex-col gap-6 px-4 py-10 md:flex-row md:items-center md:justify-between md:px-6 lg:px-8">
         <div>
-          <p className="text-lg font-semibold text-foreground">Uphouse 建設</p>
+          <p className="text-lg font-semibold text-foreground">向上建設</p>
           <p className="mt-2 text-sm text-muted-foreground">
             匯聚建築、美學與生活價值，為家庭打造值得信任的居住選擇。
           </p>

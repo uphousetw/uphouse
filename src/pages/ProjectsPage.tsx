@@ -74,8 +74,8 @@ export const ProjectsPage = () => {
       <header className="space-y-4">
         <h1 className="text-3xl font-semibold text-foreground md:text-4xl">建案一覽</h1>
         <p className="max-w-2xl text-base text-muted-foreground md:text-lg">
-          Uphouse 以永續建築與完善社區配套為核心，提供從預售、施工中到已完工的多元住宅選擇。
-          依照您的購屋需求挑選合適的建案，預約專屬顧問服務。
+          我們提供從預售、施工中到已完工的多元住宅選擇。
+          請依照您的購屋需求挑選合適的建案，並來電預約。
         </p>
       </header>
 

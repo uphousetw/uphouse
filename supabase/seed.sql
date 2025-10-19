@@ -29,6 +29,8 @@ insert into public.projects (
   gallery,
   contact_phone,
   address,
+  latitude,
+  longitude,
   launch_date,
   is_featured
 )
@@ -57,6 +59,8 @@ values
     ],
     '(02) 2345-8765',
     '台北市信義區信義路五段 150 號',
+    25.0330,
+    121.5654,
     '2025 Q2',
     true
   ),
@@ -84,6 +88,8 @@ values
     ],
     '(02) 2987-1122',
     '新北市林口區仁愛路 88 號',
+    25.0777,
+    121.3581,
     '2024 Q4',
     true
   ),
@@ -111,6 +117,8 @@ values
     ],
     '(02) 2626-5566',
     '新北市淡水區中正東路一段 26 號',
+    25.1537,
+    121.4595,
     '2023 Q3',
     false
   )
@@ -129,6 +137,8 @@ set
   gallery = excluded.gallery,
   contact_phone = excluded.contact_phone,
   address = excluded.address,
+  latitude = excluded.latitude,
+  longitude = excluded.longitude,
   launch_date = excluded.launch_date,
   is_featured = excluded.is_featured;
 
@@ -140,7 +150,7 @@ insert into public.about_page (title, subtitle, description, stats, core_practic
 values (
   'Uphouse 的建築哲學：穩健、誠信、貼近生活',
   'Our Story',
-  'Uphouse 建設成立於 2001 年，以「讓家回歸生活本質」為信念。20 餘年來我們專注於住宅開發，從土地評估、規劃設計到售後服務皆由專業團隊親自把關，累計交屋超過 2,800 戶，打造出一座座值得世代傳承的住宅地標。',
+  '向上建設成立於 2001 年，以「讓家回歸生活本質」為信念。20 餘年來我們專注於住宅開發，從土地評估、規劃設計到售後服務皆由專業團隊親自把關，累計交屋超過 2,800 戶，打造出一座座值得世代傳承的住宅地標。',
   '[
     {"label": "成立年", "value": "2001"},
     {"label": "累計交屋戶數", "value": "2,800+"},
