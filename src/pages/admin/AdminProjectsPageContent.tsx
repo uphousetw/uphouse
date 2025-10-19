@@ -22,6 +22,17 @@ export const AdminProjectsPageContent = () => {
   const [success, setSuccess] = useState<string | null>(null)
   const [contentId, setContentId] = useState<string | null>(null)
 
+  // Auto-dismiss success/error messages after 5 seconds
+  useEffect(() => {
+    if (success || error) {
+      const timer = setTimeout(() => {
+        setSuccess(null)
+        setError(null)
+      }, 5000)
+      return () => clearTimeout(timer)
+    }
+  }, [success, error])
+
   useEffect(() => {
     if (!isSupabaseConfigured || !supabase) {
       setError('尚未設定 Supabase，無法載入建案頁面內容。')
@@ -128,18 +139,6 @@ export const AdminProjectsPageContent = () => {
         </p>
       </div>
 
-      {error ? (
-        <div className="rounded-2xl border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm text-destructive">
-          {error}
-        </div>
-      ) : null}
-
-      {success ? (
-        <div className="rounded-2xl border border-primary/30 bg-primary/10 px-4 py-3 text-sm text-primary">
-          {success}
-        </div>
-      ) : null}
-
       {loading ? (
         <div className="space-y-4">
           {Array.from({ length: 2 }).map((_, index) => (
@@ -185,6 +184,18 @@ export const AdminProjectsPageContent = () => {
               {saving ? '儲存中…' : '儲存變更'}
             </button>
           </div>
+
+          {error ? (
+            <div className="rounded-2xl border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm text-destructive">
+              {error}
+            </div>
+          ) : null}
+
+          {success ? (
+            <div className="rounded-2xl border border-primary/30 bg-primary/10 px-4 py-3 text-sm text-primary">
+              {success}
+            </div>
+          ) : null}
         </form>
       )}
     </div>
