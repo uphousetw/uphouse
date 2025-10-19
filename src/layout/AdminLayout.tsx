@@ -1,18 +1,31 @@
+import { useState } from 'react'
 import { Link, Outlet } from 'react-router-dom'
 
 import { useAuth } from '@/providers/AuthProvider'
 
 type AdminNavItem =
   | { label: string; to: string; role?: 'admin' | 'editor' }
-  | { label: string; type: 'section'; role?: 'admin' | 'editor' }
+  | {
+      label: string
+      type: 'group'
+      role?: 'admin' | 'editor'
+      children: { label: string; to: string; role?: 'admin' | 'editor' }[]
+    }
 
 const adminNav: AdminNavItem[] = [
   { label: '儀表板', to: '/admin' },
   { label: '建案管理', to: '/admin/projects' },
-  { label: '首頁內容', to: '/admin/content/homepage', role: 'admin' },
-  { label: '建案頁面', to: '/admin/content/projects-page', role: 'admin' },
-  { label: '聯絡頁面', to: '/admin/content/contact-page', role: 'admin' },
-  { label: '關於我們頁面', to: '/admin/content/about', role: 'admin' },
+  {
+    label: '網站內容管理',
+    type: 'group',
+    role: 'admin',
+    children: [
+      { label: '首頁內容', to: '/admin/content/homepage', role: 'admin' },
+      { label: '建案頁面', to: '/admin/content/projects-page', role: 'admin' },
+      { label: '聯絡頁面', to: '/admin/content/contact-page', role: 'admin' },
+      { label: '關於我們頁面', to: '/admin/content/about', role: 'admin' },
+    ],
+  },
   { label: '帳號設定', to: '/admin/settings', role: 'admin' },
   { label: '潛在客戶', to: '/admin/leads', role: 'admin' },
 ]
@@ -20,6 +33,16 @@ const adminNav: AdminNavItem[] = [
 export const AdminLayout = () => {
   const { profile, user, signOut } = useAuth()
   const currentRole = profile?.role === 'admin' ? 'admin' : 'editor'
+  const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>({
+    網站內容管理: true, // Default expanded
+  })
+
+  const toggleGroup = (label: string) => {
+    setExpandedGroups((prev) => ({
+      ...prev,
+      [label]: !prev[label],
+    }))
+  }
 
   return (
     <div className="flex min-h-screen bg-secondary/40">
@@ -30,12 +53,48 @@ export const AdminLayout = () => {
         <nav className="mt-8 space-y-2 text-sm text-muted-foreground">
           {adminNav
             .filter((item) => !item.role || item.role === currentRole)
-            .map((item, index) =>
-              'type' in item && item.type === 'section' ? (
-                <div key={`section-${index}`} className="mt-4 px-3 pt-2 text-xs font-semibold uppercase tracking-[0.15em] text-muted-foreground/70">
-                  {item.label}
-                </div>
-              ) : (
+            .map((item, index) => {
+              if ('type' in item && item.type === 'group') {
+                const isExpanded = expandedGroups[item.label]
+                return (
+                  <div key={`group-${index}`}>
+                    <button
+                      type="button"
+                      onClick={() => toggleGroup(item.label)}
+                      className="flex w-full items-center justify-between rounded-lg px-3 py-2 transition hover:bg-secondary hover:text-secondary-foreground"
+                    >
+                      <span>{item.label}</span>
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        strokeWidth={2}
+                        stroke="currentColor"
+                        className={`h-4 w-4 transition-transform ${isExpanded ? 'rotate-180' : ''}`}
+                      >
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
+                      </svg>
+                    </button>
+                    {isExpanded && (
+                      <div className="ml-3 mt-1 space-y-1 border-l border-border pl-3">
+                        {item.children
+                          .filter((child) => !child.role || child.role === currentRole)
+                          .map((child) => (
+                            <Link
+                              key={child.to}
+                              to={child.to}
+                              className="block rounded-lg px-3 py-2 text-sm transition hover:bg-secondary hover:text-secondary-foreground"
+                            >
+                              {child.label}
+                            </Link>
+                          ))}
+                      </div>
+                    )}
+                  </div>
+                )
+              }
+
+              return (
                 <Link
                   key={'to' in item ? item.to : `nav-${index}`}
                   to={'to' in item ? item.to : '/admin'}
@@ -44,7 +103,7 @@ export const AdminLayout = () => {
                   {item.label}
                 </Link>
               )
-            )}
+            })}
         </nav>
         <div className="mt-auto rounded-xl border border-border bg-secondary/50 p-3 text-xs text-muted-foreground">
           <p className="font-semibold text-foreground">{profile?.full_name ?? user?.email}</p>
