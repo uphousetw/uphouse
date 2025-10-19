@@ -2,6 +2,12 @@ import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 
 import {
+  defaultHomePageContent,
+  type HomePageContent,
+  type HomePageContentRow,
+  mapHomePageContent,
+} from '@/data/homepage'
+import {
   mapProject,
   type Project,
   type ProjectRow,
@@ -9,22 +15,8 @@ import {
 } from '@/data/projects'
 import { isSupabaseConfigured, supabase } from '@/lib/supabaseClient'
 
-const valuePropositions = [
-  {
-    title: '特選建材',
-    description: '我們選用讓住戶安心的品牌，增加住戶幸福感',
-  },
-  {
-    title: '獨家選地',
-    description: '鎖定苗栗高鐵黃金生活圈，串聯學區、商圈與生活機能。',
-  },
-  {
-    title: '客製服務',
-    description: '一對一導覽，提供格局微調、智能家居等客製方案建議。',
-  },
-]
-
 export const HomePage = () => {
+  const [content, setContent] = useState<HomePageContent>(defaultHomePageContent)
   const [featuredProjects, setFeaturedProjects] = useState<Project[]>(
     () => (isSupabaseConfigured ? [] : sampleFeaturedProjects),
   )
@@ -40,22 +32,38 @@ export const HomePage = () => {
 
     const load = async () => {
       setLoading(true)
-      const { data, error: queryError } = await supabase!
-        .from('projects')
-        .select('*')
-        .eq('is_featured', true)
-        .order('created_at', { ascending: false })
-        .limit(2)
+
+      const [
+        { data: contentData, error: contentError },
+        { data: projectsData, error: projectsError }
+      ] = await Promise.all([
+        supabase!
+          .from('homepage_content')
+          .select('*')
+          .order('updated_at', { ascending: false })
+          .limit(1)
+          .maybeSingle(),
+        supabase!
+          .from('projects')
+          .select('*')
+          .eq('is_featured', true)
+          .order('created_at', { ascending: false })
+          .limit(2)
+      ])
 
       if (!isActive) {
         return
       }
 
-      if (queryError) {
-        setError(queryError.message)
+      if (contentData) {
+        setContent(mapHomePageContent(contentData))
+      }
+
+      if (projectsError) {
+        setError(projectsError.message)
         setFeaturedProjects(sampleFeaturedProjects)
-      } else if (data) {
-        setFeaturedProjects(data.map(mapProject))
+      } else if (projectsData) {
+        setFeaturedProjects(projectsData.map(mapProject))
         setError(null)
       }
 
@@ -76,14 +84,13 @@ export const HomePage = () => {
         <div className="mx-auto grid max-w-6xl gap-12 px-4 pb-12 pt-16 md:grid-cols-2 md:px-6 lg:px-8 lg:pb-16 lg:pt-24">
           <div className="space-y-6">
             <span className="inline-flex items-center rounded-full border border-primary/20 bg-primary/10 px-4 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-primary">
-              向上建設
+              {content.heroBadge}
             </span>
             <h1 className="text-4xl font-semibold leading-tight tracking-tight text-foreground sm:text-5xl">
-              向上建設 向下扎根
+              {content.heroTitle}
             </h1>
             <p className="text-base text-muted-foreground md:text-lg">
-              打造苗栗高鐵特區質感美學
-             
+              {content.heroDescription}
             </p>
             <div className="flex flex-col gap-3 sm:flex-row">
               <Link
@@ -111,11 +118,7 @@ export const HomePage = () => {
           </div>
         </div>
         <div className="mx-auto grid max-w-6xl gap-6 px-4 pb-16 md:grid-cols-3 md:px-6 lg:px-8">
-          {[
-            { label: '專注', value: '100%' },
-            { label: '苗栗高鐵建案', value: '3件' },
-            { label: '工程團隊', value: '30+ 人' },
-          ].map((item) => (
+          {content.stats.map((item) => (
             <div
               key={item.label}
               className="rounded-2xl border border-border bg-secondary/60 p-6 text-center"
@@ -130,9 +133,9 @@ export const HomePage = () => {
       <section className="mx-auto max-w-6xl px-4 md:px-6 lg:px-8">
         <div className="flex flex-col items-start justify-between gap-6 md:flex-row md:items-end">
           <div className="space-y-4">
-            <h2 className="text-3xl font-semibold text-foreground">精選建案</h2>
+            <h2 className="text-3xl font-semibold text-foreground">{content.featuredSectionTitle}</h2>
             <p className="max-w-xl text-base text-muted-foreground">
-              以苗栗為起點，創造各具風格的建築作品，讓居住的每個空間都充滿著生命力和獨特性
+              {content.featuredSectionDescription}
             </p>
           </div>
           <Link
@@ -210,13 +213,13 @@ export const HomePage = () => {
       <section className="mx-auto max-w-6xl px-4 md:px-6 lg:px-8">
         <div className="rounded-3xl border border-border bg-secondary/60 px-8 py-12">
           <div className="max-w-2xl space-y-4">
-            <h2 className="text-3xl font-semibold text-foreground">品牌承諾</h2>
+            <h2 className="text-3xl font-semibold text-foreground">{content.brandPromiseTitle}</h2>
             <p className="text-base text-muted-foreground">
-              我們相信好宅始於透明與信任。從土地評估到交屋維保，我們與住戶保持緊密溝通，確保每一位成員在社區中安心生活。
+              {content.brandPromiseDescription}
             </p>
           </div>
           <div className="mt-10 grid gap-6 md:grid-cols-3">
-            {valuePropositions.map((item) => (
+            {content.valuePropositions.map((item) => (
               <div key={item.title} className="rounded-2xl border border-border bg-background p-6">
                 <h3 className="text-xl font-semibold text-foreground">{item.title}</h3>
                 <p className="mt-3 text-sm text-muted-foreground">{item.description}</p>
@@ -229,9 +232,9 @@ export const HomePage = () => {
       <section className="mx-auto max-w-6xl px-4 md:px-6 lg:px-8">
         <div className="grid gap-10 rounded-3xl border border-border bg-primary px-8 py-12 text-primary-foreground md:grid-cols-2 md:items-center">
           <div className="space-y-4">
-            <h2 className="text-3xl font-semibold">預約諮詢</h2>
+            <h2 className="text-3xl font-semibold">{content.consultationTitle}</h2>
             <p className="text-base text-primary-foreground/90">
-              請留下聯絡資訊，我們將盡速與您聯繫，安排建案導覽或客製需求服務。
+              {content.consultationDescription}
             </p>
           </div>
           <div className="flex flex-col gap-3 sm:flex-row md:justify-end">

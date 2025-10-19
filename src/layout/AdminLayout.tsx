@@ -2,10 +2,18 @@ import { Link, Outlet } from 'react-router-dom'
 
 import { useAuth } from '@/providers/AuthProvider'
 
-const adminNav = [
+type AdminNavItem =
+  | { label: string; to: string; role?: 'admin' | 'editor' }
+  | { label: string; type: 'section'; role?: 'admin' | 'editor' }
+
+const adminNav: AdminNavItem[] = [
   { label: '儀表板', to: '/admin' },
   { label: '建案管理', to: '/admin/projects' },
-  { label: '關於我們', to: '/admin/about', role: 'admin' },
+  { label: '網站內容管理', type: 'section', role: 'admin' },
+  { label: '  首頁內容', to: '/admin/content/homepage', role: 'admin' },
+  { label: '  建案頁面', to: '/admin/content/projects-page', role: 'admin' },
+  { label: '  聯絡頁面', to: '/admin/content/contact-page', role: 'admin' },
+  { label: '  關於我們頁面', to: '/admin/content/about', role: 'admin' },
   { label: '帳號設定', to: '/admin/settings', role: 'admin' },
   { label: '潛在客戶', to: '/admin/leads', role: 'admin' },
 ]
@@ -23,15 +31,21 @@ export const AdminLayout = () => {
         <nav className="mt-8 space-y-2 text-sm text-muted-foreground">
           {adminNav
             .filter((item) => !item.role || item.role === currentRole)
-            .map((item) => (
-              <Link
-                key={item.to}
-                to={item.to}
-                className="block rounded-lg px-3 py-2 transition hover:bg-secondary hover:text-secondary-foreground"
-              >
-                {item.label}
-              </Link>
-            ))}
+            .map((item, index) =>
+              'type' in item && item.type === 'section' ? (
+                <div key={`section-${index}`} className="mt-4 px-3 pt-2 text-xs font-semibold uppercase tracking-[0.15em] text-muted-foreground/70">
+                  {item.label}
+                </div>
+              ) : (
+                <Link
+                  key={'to' in item ? item.to : `nav-${index}`}
+                  to={'to' in item ? item.to : '/admin'}
+                  className="block rounded-lg px-3 py-2 transition hover:bg-secondary hover:text-secondary-foreground"
+                >
+                  {item.label}
+                </Link>
+              )
+            )}
         </nav>
         <div className="mt-auto rounded-xl border border-border bg-secondary/50 p-3 text-xs text-muted-foreground">
           <p className="font-semibold text-foreground">{profile?.full_name ?? user?.email}</p>

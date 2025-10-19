@@ -9,6 +9,12 @@ import {
   type ProjectStatus,
   sampleProjects,
 } from '@/data/projects'
+import {
+  defaultProjectsPageContent,
+  type ProjectsPageContent,
+  type ProjectsPageContentRow,
+  mapProjectsPageContent,
+} from '@/data/projectsPage'
 import { isSupabaseConfigured, supabase } from '@/lib/supabaseClient'
 
 const STATUS_OPTIONS: Array<{ label: string; value: ProjectStatus | 'all' }> = [
@@ -19,6 +25,7 @@ const STATUS_OPTIONS: Array<{ label: string; value: ProjectStatus | 'all' }> = [
 ]
 
 export const ProjectsPage = () => {
+  const [content, setContent] = useState<ProjectsPageContent>(defaultProjectsPageContent)
   const [status, setStatus] = useState<ProjectStatus | 'all'>('all')
   const [projects, setProjects] = useState<Project[]>(() =>
     isSupabaseConfigured ? [] : sampleProjects,
@@ -35,20 +42,36 @@ export const ProjectsPage = () => {
 
     const load = async () => {
       setLoading(true)
-      const { data, error: queryError } = await supabase!
-        .from('projects')
-        .select('*')
-        .order('created_at', { ascending: false })
+
+      const [
+        { data: contentData, error: contentError },
+        { data: projectsData, error: projectsError }
+      ] = await Promise.all([
+        supabase!
+          .from('projects_page_content')
+          .select('*')
+          .order('updated_at', { ascending: false })
+          .limit(1)
+          .maybeSingle(),
+        supabase!
+          .from('projects')
+          .select('*')
+          .order('created_at', { ascending: false })
+      ])
 
       if (!isActive) {
         return
       }
 
-      if (queryError) {
-        setError(queryError.message)
+      if (contentData) {
+        setContent(mapProjectsPageContent(contentData))
+      }
+
+      if (projectsError) {
+        setError(projectsError.message)
         setProjects(sampleProjects)
-      } else if (data) {
-        setProjects(data.map(mapProject))
+      } else if (projectsData) {
+        setProjects(projectsData.map(mapProject))
         setError(null)
       }
 
@@ -72,10 +95,9 @@ export const ProjectsPage = () => {
   return (
     <div className="mx-auto max-w-6xl px-4 py-16 md:px-6 lg:px-8">
       <header className="space-y-4">
-        <h1 className="text-3xl font-semibold text-foreground md:text-4xl">建案一覽</h1>
+        <h1 className="text-3xl font-semibold text-foreground md:text-4xl">{content.pageTitle}</h1>
         <p className="max-w-2xl text-base text-muted-foreground md:text-lg">
-          我們提供從預售、施工中到已完工的多元住宅選擇。
-          請依照您的購屋需求挑選合適的建案，並來電預約。
+          {content.pageDescription}
         </p>
       </header>
 

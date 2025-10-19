@@ -9,11 +9,14 @@ import { HomePage } from './pages/HomePage'
 import { ProjectDetailPage } from './pages/ProjectDetailPage'
 import { ProjectsPage } from './pages/ProjectsPage'
 import { AdminAboutPage } from './pages/admin/AdminAboutPage'
+import { AdminContactPageContent } from './pages/admin/AdminContactPageContent'
 import { AdminDashboard } from './pages/admin/AdminDashboard'
+import { AdminHomePageContent } from './pages/admin/AdminHomePageContent'
 import { AdminLeadsPage } from './pages/admin/AdminLeadsPage'
 import { AdminLoginPage } from './pages/admin/AdminLoginPage'
 import { AdminProjectsPage } from './pages/admin/AdminProjectsPage'
 import { AdminProjectFormPage } from './pages/admin/AdminProjectFormPage'
+import { AdminProjectsPageContent } from './pages/admin/AdminProjectsPageContent'
 import { AdminSettingsPage } from './pages/admin/AdminSettingsPage'
 
 export const router = createBrowserRouter([
@@ -42,7 +45,31 @@ export const router = createBrowserRouter([
       { path: 'projects/new', element: <AdminProjectFormPage /> },
       { path: 'projects/:slug/edit', element: <AdminProjectFormPage /> },
       {
-        path: 'about',
+        path: 'content/homepage',
+        element: (
+          <RequireAuth role="admin">
+            <AdminHomePageContent />
+          </RequireAuth>
+        ),
+      },
+      {
+        path: 'content/projects-page',
+        element: (
+          <RequireAuth role="admin">
+            <AdminProjectsPageContent />
+          </RequireAuth>
+        ),
+      },
+      {
+        path: 'content/contact-page',
+        element: (
+          <RequireAuth role="admin">
+            <AdminContactPageContent />
+          </RequireAuth>
+        ),
+      },
+      {
+        path: 'content/about',
         element: (
           <RequireAuth role="admin">
             <AdminAboutPage />

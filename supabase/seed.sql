@@ -194,3 +194,94 @@ values (
   ]'::jsonb
 )
 on conflict (id) do nothing;
+
+-- ============================================================
+-- HOMEPAGE CONTENT: Default Content
+-- ============================================================
+
+insert into public.homepage_content (
+  hero_badge,
+  hero_title,
+  hero_description,
+  stats,
+  featured_section_title,
+  featured_section_description,
+  value_propositions,
+  brand_promise_title,
+  brand_promise_description,
+  consultation_title,
+  consultation_description
+)
+values (
+  '向上建設',
+  '向上建設 向下扎根',
+  '打造苗栗高鐵特區質感美學',
+  '[
+    {"label": "專注", "value": "100%"},
+    {"label": "苗栗高鐵建案", "value": "3件"},
+    {"label": "工程團隊", "value": "30+ 人"}
+  ]'::jsonb,
+  '精選建案',
+  '以苗栗為起點，創造各具風格的建築作品，讓居住的每個空間都充滿著生命力和獨特性',
+  '[
+    {
+      "title": "特選建材",
+      "description": "我們選用讓住戶安心的品牌，增加住戶幸福感"
+    },
+    {
+      "title": "獨家選地",
+      "description": "鎖定苗栗高鐵黃金生活圈，串聯學區、商圈與生活機能。"
+    },
+    {
+      "title": "客製服務",
+      "description": "一對一導覽，提供格局微調、智能家居等客製方案建議。"
+    }
+  ]'::jsonb,
+  '品牌承諾',
+  '我們相信好宅始於透明與信任。從土地評估到交屋維保，我們與住戶保持緊密溝通，確保每一位成員在社區中安心生活。',
+  '預約諮詢',
+  '請留下聯絡資訊，我們將盡速與您聯繫，安排建案導覽或客製需求服務。'
+)
+on conflict (id) do nothing;
+
+-- ============================================================
+-- CONTACT PAGE CONTENT: Default Content
+-- ============================================================
+
+insert into public.contact_page_content (
+  page_title,
+  page_description,
+  address_label,
+  address_value,
+  business_hours,
+  phone_label,
+  phone_value,
+  email_label,
+  email_value
+)
+values (
+  '聯絡我們',
+  '填寫表單後，我們將盡速與您聯繫',
+  '地址',
+  '台北市信義區松仁路 123 號 10 樓',
+  '營業時間：週一至週日 10:00-20:00',
+  '服務專線',
+  '(02) 1234-5678',
+  '客服信箱',
+  'contact@uphouse.tw'
+)
+on conflict (id) do nothing;
+
+-- ============================================================
+-- PROJECTS PAGE CONTENT: Default Content
+-- ============================================================
+
+insert into public.projects_page_content (
+  page_title,
+  page_description
+)
+values (
+  '建案一覽',
+  '我們提供從預售、施工中到已完工的多元住宅選擇。請依照您的購屋需求挑選合適的建案，並來電預約。'
+)
+on conflict (id) do nothing;

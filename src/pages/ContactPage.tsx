@@ -1,5 +1,11 @@
-import { FormEvent, useState } from 'react'
+import { FormEvent, useEffect, useState } from 'react'
 
+import {
+  defaultContactPageContent,
+  type ContactPageContent,
+  type ContactPageContentRow,
+  mapContactPageContent,
+} from '@/data/contactPage'
 import { isSupabaseConfigured, supabase } from '@/lib/supabaseClient'
 
 const initialFormState = {
@@ -12,9 +18,41 @@ const initialFormState = {
 type SubmitStatus = 'idle' | 'loading' | 'success' | 'error'
 
 export const ContactPage = () => {
+  const [content, setContent] = useState<ContactPageContent>(defaultContactPageContent)
   const [form, setForm] = useState(initialFormState)
   const [status, setStatus] = useState<SubmitStatus>('idle')
   const [error, setError] = useState<string | null>(null)
+
+  useEffect(() => {
+    if (!isSupabaseConfigured || !supabase) {
+      return
+    }
+
+    let isActive = true
+
+    const load = async () => {
+      const { data, error: queryError } = await supabase!
+        .from('contact_page_content')
+        .select('*')
+        .order('updated_at', { ascending: false })
+        .limit(1)
+        .maybeSingle()
+
+      if (!isActive) {
+        return
+      }
+
+      if (data) {
+        setContent(mapContactPageContent(data))
+      }
+    }
+
+    void load()
+
+    return () => {
+      isActive = false
+    }
+  }, [])
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
@@ -51,9 +89,9 @@ export const ContactPage = () => {
     <div className="mx-auto max-w-5xl px-4 py-16 md:px-6 lg:px-8">
       <div className="grid gap-12 rounded-3xl border border-border bg-secondary/60 p-8 md:grid-cols-[2fr_1fr]">
         <div>
-          <h1 className="text-3xl font-semibold text-foreground md:text-4xl">聯絡我們</h1>
+          <h1 className="text-3xl font-semibold text-foreground md:text-4xl">{content.pageTitle}</h1>
           <p className="mt-4 text-base text-muted-foreground">
-            填寫表單後，我們將盡速與您聯繫
+            {content.pageDescription}
           </p>
 
           <form onSubmit={handleSubmit} className="mt-8 space-y-6">
@@ -128,23 +166,14 @@ export const ContactPage = () => {
         </div>
         <aside className="space-y-6 rounded-2xl border border-border bg-background p-6 text-sm text-muted-foreground">
           <div>
-            <h2 className="text-base font-semibold text-foreground">地址</h2>
-            <p className="mt-2">台北市信義區松仁路 123 號 10 樓</p>
-            <p>營業時間：週一至週日 10:00-20:00</p>
+            <h2 className="text-base font-semibold text-foreground">{content.addressLabel}</h2>
+            <p className="mt-2">{content.addressValue}</p>
+            <p>{content.businessHours}</p>
           </div>
           <div>
             <h2 className="text-base font-semibold text-foreground">聯絡方式</h2>
-            <p className="mt-2">電話：(02) 1234-5678</p>
-            <p>Email：service@uphouse.com.tw</p>
-            <p>Line 官方帳號：@uphouse</p>
-          </div>
-          <div>
-            <h2 className="text-base font-semibold text-foreground">交通資訊</h2>
-            <ul className="mt-2 space-y-2">
-              <li>捷運象山站 2 號出口步行 5 分鐘</li>
-              <li>板南線市府站轉乘藍 10 公車至松仁路口</li>
-              <li>地下停車場提供訪客車位，請提前預約</li>
-            </ul>
+            <p className="mt-2">{content.phoneLabel}：{content.phoneValue}</p>
+            <p>{content.emailLabel}：{content.emailValue}</p>
           </div>
         </aside>
       </div>
