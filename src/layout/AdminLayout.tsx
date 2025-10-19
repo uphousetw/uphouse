@@ -9,11 +9,10 @@ type AdminNavItem =
 const adminNav: AdminNavItem[] = [
   { label: '儀表板', to: '/admin' },
   { label: '建案管理', to: '/admin/projects' },
-  { label: '網站內容管理', type: 'section', role: 'admin' },
-  { label: '  首頁內容', to: '/admin/content/homepage', role: 'admin' },
-  { label: '  建案頁面', to: '/admin/content/projects-page', role: 'admin' },
-  { label: '  聯絡頁面', to: '/admin/content/contact-page', role: 'admin' },
-  { label: '  關於我們頁面', to: '/admin/content/about', role: 'admin' },
+  { label: '首頁內容', to: '/admin/content/homepage', role: 'admin' },
+  { label: '建案頁面', to: '/admin/content/projects-page', role: 'admin' },
+  { label: '聯絡頁面', to: '/admin/content/contact-page', role: 'admin' },
+  { label: '關於我們頁面', to: '/admin/content/about', role: 'admin' },
   { label: '帳號設定', to: '/admin/settings', role: 'admin' },
   { label: '潛在客戶', to: '/admin/leads', role: 'admin' },
 ]
